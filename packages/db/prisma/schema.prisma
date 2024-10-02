@@ -1,0 +1,45 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(uuid())
+  username  String    @unique
+  email     String    @unique
+  password  String
+  cronJobs  CronJob[]
+  createdAt DateTime  @default(now())
+}
+
+model CronJob {
+  id             String   @id @default(uuid())
+  title          String
+  url            String
+  cronSchedule   String
+  active         Boolean
+  nextEvents     String[]
+  previousEvents Event[]
+  userId         String
+  user           User     @relation(fields: [userId], references: [id])
+  createdAt       DateTime @default(now())
+}
+
+model Event {
+  id        String      @id @default(uuid())
+  cronJobId String
+  cronJob   CronJob     @relation(fields: [cronJobId], references: [id])
+  time      DateTime
+  status    EventStatus
+  createdAt DateTime    @default(now())
+}
+
+enum EventStatus {
+  SUCCESS
+  FAILURE
+  PENDING
+}

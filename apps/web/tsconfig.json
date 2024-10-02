@@ -5,14 +5,20 @@
       {
         "name": "next"
       }
-    ]
+    ],
+    "paths": {
+      "@/*": ["./*"],
+      "db": ["../../packages/db/src/"]
+    }
   },
   "include": [
     "next-env.d.ts",
     "next.config.mjs",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    "prisma/**/*.ts",
+    "db.ts"
   ],
   "exclude": ["node_modules"]
 }
