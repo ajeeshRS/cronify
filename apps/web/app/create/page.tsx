@@ -10,7 +10,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import {
@@ -22,16 +21,46 @@ import {
 } from "@/components/ui/select";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { API } from "../config/axios";
+import { CustomSession } from "@/lib/auth";
+import {
+  cronjobCreateSchema,
+  cronjobCreateSchemaType,
+} from "@/lib/validators/cronjob.validator";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 export default function Page() {
   const router = useRouter();
-  const { data: session } = useSession();
-  if (!session?.user) {
+  const session = useSession();
+
+  if (session.status !== "loading" && !session?.data?.user) {
     router.push("/login");
   }
 
-  const form = useForm();
+  const custmSession = session.data as CustomSession;
+
+  const form = useForm<cronjobCreateSchemaType>({
+    resolver: zodResolver(cronjobCreateSchema),
+  });
+
   const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (data: cronjobCreateSchemaType) => {
+    try {
+      setLoading(true);
+      const res = await API.post("/create", {
+        userId: custmSession.user.id,
+        title: data.title,
+        url: data.url,
+        schedule: data.schedule,
+      });
+      setLoading(false);
+    } catch (err) {
+      setLoading(false);
+      console.error("Error in adding cronjob: ", err);
+    }
+  };
+
   return (
     <div
       className={`${roboto.className} w-full h-[90vh] flex items-center flex-col justify-center px-20 py-10`}
@@ -40,7 +69,7 @@ export default function Page() {
         <Form {...form}>
           <h3 className="w-full text-center font-bold text-2xl">Add CronJob</h3>
           <form
-            onSubmit={form.handleSubmit((data) => console.log(data))}
+            onSubmit={form.handleSubmit((data) => handleSubmit(data))}
             className="md:w-full w-5/6"
           >
             <FormField
@@ -89,7 +118,7 @@ export default function Page() {
                         defaultValue={field.value}
                       >
                         <SelectTrigger className="w-16 mx-2">
-                          <SelectValue defaultValue={10} placeholder="10" />
+                          <SelectValue defaultValue="10" placeholder="10" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="5">5</SelectItem>

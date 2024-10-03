@@ -9,8 +9,8 @@ import { useSession } from "next-auth/react";
 export default function Page() {
   const router = useRouter();
 
-  const { data: session } = useSession();
-  if (!session?.user) {
+  const session = useSession();
+  if (session.status !== "loading" && !session?.data?.user) {
     router.push("/login");
   }
   return (

@@ -8,17 +8,16 @@
     ],
     "paths": {
       "@/*": ["./*"],
-      "db": ["../../packages/db/src/"]
-    }
+      "@prisma/client": ["@repo/db/client/*"]
+    },
+    "baseUrl": "."
   },
   "include": [
     "next-env.d.ts",
     "next.config.mjs",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts",
-    "prisma/**/*.ts",
-    "db.ts"
+    ".next/types/**/*.ts"
   ],
   "exclude": ["node_modules"]
 }

@@ -17,7 +17,6 @@ import { signOut, useSession } from "next-auth/react";
 export default function Navbar() {
   const pathname = usePathname();
   const { data: session } = useSession();
-  console.log(session?.user);
   return (
     <nav
       className={`w-full h-[10vh] py-10 sticky top-0 z-50 bg-[#fff] flex items-center ${

@@ -35,7 +35,7 @@ export default function Page() {
       }
       setLoading(false);
       // Process response here
-      console.log("Registration Successful", res);
+      // console.log("Registration Successful", res);
       toast.success("Account created");
     } catch (error) {
       setLoading(false);

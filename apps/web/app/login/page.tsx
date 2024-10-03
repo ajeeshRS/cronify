@@ -16,7 +16,7 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useState } from "react";
@@ -26,6 +26,10 @@ export default function Page() {
     resolver: zodResolver(SigninSchema),
   });
   const [loading, setLoading] = useState(false);
+  const session = useSession();
+  if (session.status !== "loading" && session?.data?.user) {
+    router.push("/dashboard");
+  }
 
   async function onSubmit(values: SigninSchemaType) {
     const { email, password } = values;
@@ -36,7 +40,9 @@ export default function Page() {
         password,
         redirect: false,
       });
-      console.log({ response });
+
+      // console.log({ response });
+
       if (!response?.error) {
         router.push("/");
         router.refresh();

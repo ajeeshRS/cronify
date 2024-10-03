@@ -1,24 +1,28 @@
-import { Session } from "next-auth";
+import { DefaultSession, Session } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { compare } from "bcryptjs";
 import { NextAuthOptions } from "next-auth";
-import prisma from "db/src/db";
+import { PrismaClient } from "@prisma/client";
+const prisma = new PrismaClient();
 
-export interface session extends Session {
-  user: {
-    id: string;
-    jwtToken: string;
-    role: string;
-    email: string;
-    name: string;
-  };
-}
+// export interface session extends Session {
+//   user: {
+//     id: string;
+//     jwtToken: string;
+//     role: string;
+//     email: string;
+//     name: string;
+//   };
+// }
 
-interface user {
+interface User {
   id: string;
   name: string;
   email: string;
-  token: string;
+}
+
+export interface CustomSession extends DefaultSession {
+  user: User;
 }
 
 export const authOptions = {
@@ -48,7 +52,7 @@ export const authOptions = {
         if (!isValidPassword) throw new Error("Invalid credentials");
 
         return {
-          id: user.id.toString(),
+          id: user.id,
           email: user.email,
           name: user.username,
         };
@@ -63,7 +67,7 @@ export const authOptions = {
       return token;
     },
     async session({ session, token }) {
-      const newSession: session = session as session;
+      const newSession: CustomSession = session as CustomSession;
       if (newSession.user) {
         newSession.user.id = token.id as string;
       }
