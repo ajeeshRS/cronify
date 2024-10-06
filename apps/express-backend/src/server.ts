@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import cronjobRoutes from "./routes/cronjobRoutes";
 import { connectRedis } from "./config/redisConfig";
+import { loadCronJobs } from "./services/cronJobService";
 dotenv.config();
 
 const app = express();
@@ -15,10 +16,10 @@ app.use("/api/v1/cronjob", cronjobRoutes);
 
 const startServer = async () => {
   await connectRedis();
-
+  await loadCronJobs();
   app.listen(PORT, () => {
     console.log(`Server running on localhost port ${PORT}`);
   });
 };
 
-startServer()
+startServer();

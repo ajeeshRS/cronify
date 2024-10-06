@@ -6,7 +6,6 @@ import {
   getCronExpression,
   getNextTwoExecutions,
 } from "../utils/utils";
-import axios from "axios";
 import { setCache } from "../services/redisService";
 const prisma = new PrismaClient();
 
@@ -38,7 +37,9 @@ export const createCronjob = async (req: Request, res: Response) => {
             status: "SUCCESS",
           },
         });
-        console.log("Cron job executed successfully!!");
+        console.log(
+          `Cron job ${newCronJob.title} executed successfully at ${executionTime}`
+        );
       } catch (err) {
         await prisma.event.create({
           data: {
@@ -62,7 +63,7 @@ export const createCronjob = async (req: Request, res: Response) => {
         },
       });
     }
-
+    console.log("Cron job created!");
     res.status(200).json({ message: "Cron job created!!" });
   } catch (err) {
     console.error("Error in adding cronjob: ", err);
@@ -78,11 +79,10 @@ export const cronTestRun = async (req: Request, res: Response) => {
       return;
     }
 
-    const response = await axios.head(url, {
-      timeout: 5000,
-    });
-
-    response && res.status(200).json({ message: "Test run success" });
+    const response = await execute(url);
+    if (response) {
+      return res.status(200).json({ message: "Test run success" });
+    }
   } catch (err: any) {
     console.error("Error in test run: ", err.response);
     if (err.response.status === 403) {
