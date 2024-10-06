@@ -28,11 +28,11 @@ import {
   cronjobCreateSchemaType,
 } from "@/lib/validators/cronjob.validator";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
 
 export default function Page() {
   const router = useRouter();
   const session = useSession();
-
   if (session.status !== "loading" && !session?.data?.user) {
     router.push("/login");
   }
@@ -43,7 +43,9 @@ export default function Page() {
     resolver: zodResolver(cronjobCreateSchema),
   });
 
+  const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
+  const [testLoading, setTestLoading] = useState(false);
 
   const handleSubmit = async (data: cronjobCreateSchemaType) => {
     try {
@@ -55,9 +57,24 @@ export default function Page() {
         schedule: data.schedule,
       });
       setLoading(false);
+      toast.success(res.data);
     } catch (err) {
       setLoading(false);
-      console.error("Error in adding cronjob: ", err);
+      toast.success("Error in creating cronjob");
+      console.error("Error in creating cronjob: ", err);
+    }
+  };
+
+  const handleTestRun = async (url: string) => {
+    try {
+      setTestLoading(true);
+      const res = await API.post("/test-run", { url });
+      toast.success(res.data.message);
+      setTestLoading(false);
+    } catch (err: any) {
+      setTestLoading(false);
+      console.error(err);
+      toast.error(err.response.data.message);
     }
   };
 
@@ -136,7 +153,12 @@ export default function Page() {
               )}
             />
             <div className="w-full flex items-center justify-end">
-              <Button className="w-1/6 mt-3 rounded-3xl mx-1">Test run</Button>
+              <Button
+                className="w-1/6 mt-3 rounded-3xl mx-1"
+                onClick={form.handleSubmit((data) => handleTestRun(data.url))}
+              >
+                {testLoading ? "Testing..." : "Test run"}
+              </Button>
               <Button className="w-1/6 mt-3 rounded-3xl" type="submit">
                 {loading ? "Adding..." : "Add"}
               </Button>

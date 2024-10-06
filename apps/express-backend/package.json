@@ -16,6 +16,7 @@
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/node": "^22.7.4",
+    "@types/node-cron": "^3.0.11",
     "concurrently": "^9.0.1",
     "nodemon": "^3.1.7",
     "tsc-watch": "^6.2.0",
@@ -24,8 +25,10 @@
   "dependencies": {
     "@repo/db": "*",
     "cors": "^2.8.5",
+    "cron-parser": "^4.9.0",
     "dotenv": "^16.4.5",
     "express": "^4.21.0",
+    "node-cron": "^3.0.3",
     "redis": "^4.7.0"
   }
 }
