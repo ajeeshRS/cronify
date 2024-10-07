@@ -1,6 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { Clock, Plus } from "lucide-react";
+import { Clock, Eye, Plus } from "lucide-react";
 import { roboto } from "../fonts/font";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -21,12 +21,20 @@ export default function Page() {
       <div className="w-full h-[1px] bg-gray-300 my-2"></div>
       <div className="py-4 w-full flex justify-between">
         <h3 className="font-semibold text-xl">Dashboard</h3>
-        <Button
-          onClick={() => router.push("/create")}
-          className={`bg-[#DAF872] font-medium text-lg py-2 px-3 rounded-lg shadow-none text-inherit hover:bg-white border-[#DAF872] border hover:border-[#000] hover:text-[#000] flex items-center`}
-        >
-          <Plus className="w-4 h-4 pr-1" /> Create cronjob
-        </Button>
+        <div className="flex items-center">
+          <Button
+            onClick={() => router.push("/cronjobs")}
+            className={`bg-[#DAF872] font-normal text-sm py-2 px-3 rounded-lg shadow-none text-inherit hover:bg-white border-[#DAF872] border hover:border-[#000] hover:text-[#000] flex items-center mr-2`}
+          >
+            <Eye className="w-5 h-5 pr-1" /> View cronjobs
+          </Button>
+          <Button
+            onClick={() => router.push("/create")}
+            className={`bg-[#DAF872] font-normal text-sm py-2 px-3 rounded-lg shadow-none text-inherit hover:bg-white border-[#DAF872] border hover:border-[#000] hover:text-[#000] flex items-center`}
+          >
+            <Plus className="w-5 h-5 pr-1" /> Create cronjob
+          </Button>
+        </div>
       </div>
       <div className="w-full flex items-center justify-between py-4">
         <div className="w-1/6 min-h-28 rounded-xl bg-slate-50 shadow-md text-black flex items-center justify-center flex-col">

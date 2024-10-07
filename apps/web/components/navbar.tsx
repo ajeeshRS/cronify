@@ -1,8 +1,8 @@
 "use client";
 import Link from "next/link";
 import { Button } from "./ui/button";
-import { usePathname } from "next/navigation";
-import { LogOut, MoveLeft, User } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { ArrowLeft, LogOut, MoveLeft, User } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,16 +17,27 @@ import { signOut, useSession } from "next-auth/react";
 export default function Navbar() {
   const pathname = usePathname();
   const { data: session } = useSession();
-  console.log(session?.user)
+
+  // console.log(session?.user)
+  const router = useRouter();
+  const homePaths = ["/", "/dashboard"];
+
   return (
     <nav
       className={`w-full h-[10vh] py-10 sticky top-0 z-50 bg-[#fff] flex items-center ${
         pathname === "/login" ? "justify-start" : "justify-between"
       } px-20`}
     >
-      <h3 className="font-extrabold text-4xl text-[#1B201C]">
-        <Link href={"/"}>Cronify.</Link>
-      </h3>
+      <div className="flex items-center">
+        {!homePaths.includes(pathname) && (
+          <button onClick={() => router.back()}>
+            <ArrowLeft className="w-6 h-6" />
+          </button>
+        )}
+        <h3 className="font-extrabold text-4xl text-[#1B201C] mx-5">
+          <Link href={"/"}>Cronify.</Link>
+        </h3>
+      </div>
       <div
         className={`${
           session?.user || ["/login", "/signup"].includes(pathname)
