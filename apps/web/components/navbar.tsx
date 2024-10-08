@@ -74,7 +74,7 @@ export default function Navbar() {
       </div>
       {session?.user && (
         <DropdownMenu>
-          <DropdownMenuTrigger>
+          <DropdownMenuTrigger className="focus:outline-none focus:border-none">
             <p className="rounded-full w-12 h-12 outline-none p-3 border-none flex items-center justify-center bg-black text-white">
               {session.user.name?.charAt(0).toUpperCase()}
             </p>

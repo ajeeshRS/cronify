@@ -2,12 +2,30 @@
 import { Button } from "@/components/ui/button";
 import { roboto } from "../fonts/font";
 import { useRouter } from "next/navigation";
-import { Plus } from "lucide-react";
+import {
+  AlarmClockCheck,
+  AlarmClockOff,
+  Delete,
+  EllipsisVertical,
+  Menu,
+  Pen,
+  Plus,
+  Trash,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import Loader from "../../components/loader";
 import { fetchCronJobs } from "../actions/cronActions";
 import { CustomSession } from "@/lib/auth";
+import Link from "next/link";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function Page() {
   const router = useRouter();
@@ -59,7 +77,57 @@ export default function Page() {
           </Button>
         </div>
       </div>
-      <div className="w-full flex flex-col"></div>
+      <div className="w-full flex flex-col">
+        <div className="w-full h-[1px] bg-slate-100"></div>
+        {cronjobs.map((job) => (
+          <>
+            <div className="w-full flex items-center justify-between my-4">
+              <div className="flex items-center w-2/6">
+                <div className="flex flex-col items-start justify-center pl-4 text-sm">
+                  <p className="text-lg">{job.title}</p>
+                </div>
+              </div>
+              <Link
+                href={job.url}
+                className="py-1 hover:underline w-2/6 flex items-center justify-start text-sm"
+              >
+                {job.url}
+              </Link>
+
+              <p className="w-2/6 flex items-center justify-center text-sm">
+                {job.active ? "Enabled" : "Disabled"}
+              </p>
+              <DropdownMenu>
+                <DropdownMenuTrigger className="focus:outline-none focus:border-none hover:bg-slate-100 p-2 rounded-lg">
+                  <EllipsisVertical className="w-5 h-5" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem className="cursor-pointer flex items-center">
+                    {job.active ? (
+                      <>
+                        <AlarmClockOff className="w-3 h-3 mr-2" />
+                        <p>Disable</p>
+                      </>
+                    ) : (
+                      <>
+                        <AlarmClockCheck className="w-3 h-3 mr-2" />
+                        <p>Enable</p>
+                      </>
+                    )}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="cursor-pointer flex items-center">
+                    <Pen className="w-3 h-3 mr-2" /> Edit
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="cursor-pointer flex items-center">
+                    <Trash className="w-3 h-3 mr-2" /> Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+            <div className="w-full h-[1px] bg-slate-100"></div>
+          </>
+        ))}
+      </div>
     </div>
   );
 }
