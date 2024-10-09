@@ -24,7 +24,7 @@ export const getCronExpression = (scehdule: string) => {
 export const execute = async (url: string) => {
   try {
     const response = await axios.head(url, {
-      timeout: 5000,
+      timeout: 10000,
     });
     return response;
   } catch (err) {

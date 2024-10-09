@@ -14,7 +14,7 @@ app.use(express.json());
 
 app.use("/api/v1/cronjob", cronjobRoutes);
 
-const startServer = async () => {
+export const startServer = async () => {
   await connectRedis();
   await loadCronJobs();
   app.listen(PORT, () => {

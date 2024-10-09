@@ -5,9 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   AlarmClockCheck,
   AlarmClockOff,
-  Delete,
   EllipsisVertical,
-  Menu,
   Pen,
   Plus,
   Trash,
@@ -22,35 +20,78 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { API } from "../config/axios";
+import { toast } from "sonner";
 
 export default function Page() {
   const router = useRouter();
   const { data: session, status } = useSession();
   const [cronjobs, setCronjobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+
   const customSession = session as CustomSession;
 
-  useEffect(() => {
-    const getCronJobs = async () => {
-      if (status === "authenticated" && customSession?.user?.id) {
-        try {
-          setLoading(true);
-          const data = await fetchCronJobs(); // Action fetches cron jobs for the logged-in user
-          setCronjobs(data);
-          setLoading(false);
-        } catch (error) {
-          console.error("Error fetching cron jobs:", error);
-          setLoading(false);
-        } finally {
-          setLoading(false);
-        }
+  const enableCronjob = async (cronjobId: string) => {
+    if (status === "authenticated" && customSession?.user?.id) {
+      const toastId = toast.loading("Enabling..");
+      try {
+        const res = await API.put(`/enable`, {
+          cronjobId,
+          userId: customSession.user.id,
+        });
+        toast.success("Enabled successfully", {
+          id: toastId,
+        });
+        getCronJobs()
+      } catch (err) {
+        toast.error("Enabling failed", {
+          id: toastId,
+        });
+        console.error("Error in enabling job");
       }
-    };
+    }
+  };
 
+  const disableCronjob = async (cronjobId: string) => {
+    if (status === "authenticated" && customSession?.user?.id) {
+      const toastId = toast.loading("Disabling..");
+      try {
+        const res = await API.put(`/disable`, {
+          cronjobId,
+          userId: customSession.user.id,
+        });
+        toast.success("Disabled successfully", {
+          id: toastId,
+        });
+        getCronJobs()
+      } catch (err) {
+        toast.error("Disabling failed", {
+          id: toastId,
+        });
+        console.error("Error in disabling job");
+      }
+    }
+  };
+
+  const getCronJobs = async () => {
+    if (status === "authenticated" && customSession?.user?.id) {
+      try {
+        setLoading(true);
+        const data = await fetchCronJobs(); // Action fetches cron jobs for the logged-in user
+        setCronjobs(data);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching cron jobs:", error);
+        setLoading(false);
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  useEffect(() => {
     getCronJobs();
   }, [session, status]);
 
@@ -81,7 +122,10 @@ export default function Page() {
         <div className="w-full h-[1px] bg-slate-100"></div>
         {cronjobs.map((job) => (
           <>
-            <div className="w-full flex items-center justify-between my-4">
+            <div
+              key={job.id}
+              className="w-full flex items-center justify-between my-4"
+            >
               <div className="flex items-center w-2/6">
                 <div className="flex flex-col items-start justify-center pl-4 text-sm">
                   <p className="text-lg">{job.title}</p>
@@ -102,19 +146,27 @@ export default function Page() {
                   <EllipsisVertical className="w-5 h-5" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                  <DropdownMenuItem className="cursor-pointer flex items-center">
-                    {job.active ? (
+                  {job.active ? (
+                    <DropdownMenuItem
+                      className="cursor-pointer flex items-center"
+                      onClick={() => disableCronjob(job.id)}
+                    >
                       <>
                         <AlarmClockOff className="w-3 h-3 mr-2" />
                         <p>Disable</p>
                       </>
-                    ) : (
+                    </DropdownMenuItem>
+                  ) : (
+                    <DropdownMenuItem
+                      className="cursor-pointer flex items-center"
+                      onClick={() => enableCronjob(job.id)}
+                    >
                       <>
                         <AlarmClockCheck className="w-3 h-3 mr-2" />
                         <p>Enable</p>
                       </>
-                    )}
-                  </DropdownMenuItem>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem className="cursor-pointer flex items-center">
                     <Pen className="w-3 h-3 mr-2" /> Edit
                   </DropdownMenuItem>

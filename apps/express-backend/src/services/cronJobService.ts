@@ -4,6 +4,8 @@ import cron from "node-cron";
 import { execute, getCronExpression } from "../utils/utils";
 const prisma = new PrismaClient();
 
+export const scheduledjobs = new Map<string, cron.ScheduledTask>();
+
 export const loadCronJobs = async () => {
   try {
     const cronJobs = await prisma.cronJob.findMany({
@@ -16,7 +18,7 @@ export const loadCronJobs = async () => {
 
       const cronExpression = getCronExpression(cronSchedule);
 
-      cron.schedule(cronExpression, async () => {
+      const scheduledJob = cron.schedule(cronExpression, async () => {
         const executionTime = new Date();
         try {
           const res = await execute(url);
@@ -41,6 +43,8 @@ export const loadCronJobs = async () => {
           console.error(`Error in executing ${title} job: `, err);
         }
       });
+      scheduledjobs.set(id, scheduledJob);
+      scheduledJob.start();
     }
     console.log("Cronjobs loaded ✅");
   } catch (err) {

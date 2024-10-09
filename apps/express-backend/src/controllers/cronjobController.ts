@@ -7,6 +7,7 @@ import {
   getNextTwoExecutions,
 } from "../utils/utils";
 import { setCache } from "../services/redisService";
+import { scheduledjobs } from "..//services/cronJobService";
 const prisma = new PrismaClient();
 
 export const createCronjob = async (req: Request, res: Response) => {
@@ -37,6 +38,7 @@ export const createCronjob = async (req: Request, res: Response) => {
             status: "SUCCESS",
           },
         });
+        scheduledjobs.set(newCronJob.id, job);
         console.log(
           `Cron job ${newCronJob.title} executed successfully at ${executionTime}`
         );
@@ -81,7 +83,8 @@ export const cronTestRun = async (req: Request, res: Response) => {
 
     const response = await execute(url);
     if (response) {
-      return res.status(200).json({ message: "Test run success" });
+      res.status(200).json({ message: "Test run success" });
+      return;
     }
   } catch (err: any) {
     console.error("Error in test run: ", err.response);
@@ -102,5 +105,99 @@ export const cronTestRun = async (req: Request, res: Response) => {
       });
       return;
     }
+  }
+};
+
+export const enableCronjob = async (req: Request, res: Response) => {
+  try {
+    const { cronjobId, userId } = req.body;
+    const user = await prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+
+    if (!user) {
+      res.status(401).json("unauthorized");
+      return;
+    }
+
+    const job = await prisma.cronJob.findUnique({
+      where: {
+        id: cronjobId,
+      },
+    });
+
+    if (!job) {
+      res.status(404).json("Job not found");
+      return;
+    }
+
+    const result = await prisma.cronJob.update({
+      where: {
+        id: cronjobId,
+      },
+      data: {
+        active: true,
+      },
+    });
+
+    const scheduledjob = scheduledjobs.get(job.id);
+    if (scheduledjob) {
+      scheduledjob.start();
+      console.log("job restarted!");
+    }
+
+    res.status(200).json("Cronjob enabled successfully");
+  } catch (err) {
+    console.error("Couldn't enable the job");
+    res.status(500).json("Internal server error");
+    return;
+  }
+};
+
+export const disableCronjob = async (req: Request, res: Response) => {
+  try {
+    const { cronjobId, userId } = req.body;
+    const user = await prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+
+    if (!user) {
+      res.status(401).json("unauthorized");
+      return;
+    }
+
+    const job = await prisma.cronJob.findUnique({
+      where: {
+        id: cronjobId,
+      },
+    });
+
+    if (!job) {
+      res.status(404).json("Job not found");
+      return;
+    }
+
+    const result = await prisma.cronJob.update({
+      where: {
+        id: cronjobId,
+      },
+      data: {
+        active: false,
+      },
+    });
+    const scheduledjob = scheduledjobs.get(job.id);
+    if (scheduledjob) {
+      scheduledjob.stop();
+      console.log("job stopped!");
+    }
+    res.status(200).json("Cronjob disabled successfully");
+  } catch (err) {
+    console.error("Couldn't disable the job");
+    res.status(500).json("Internal server error");
+    return;
   }
 };
