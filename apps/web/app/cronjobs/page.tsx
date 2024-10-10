@@ -6,6 +6,7 @@ import {
   AlarmClockCheck,
   AlarmClockOff,
   EllipsisVertical,
+  LoaderIcon,
   Pen,
   Plus,
   Trash,
@@ -22,6 +23,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+
 import { API } from "../config/axios";
 import { toast } from "sonner";
 
@@ -30,6 +41,9 @@ export default function Page() {
   const { data: session, status } = useSession();
   const [cronjobs, setCronjobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false); // State for dropdown open/close
 
   const customSession = session as CustomSession;
 
@@ -44,7 +58,7 @@ export default function Page() {
         toast.success("Enabled successfully", {
           id: toastId,
         });
-        getCronJobs()
+        getCronJobs();
       } catch (err) {
         toast.error("Enabling failed", {
           id: toastId,
@@ -65,13 +79,34 @@ export default function Page() {
         toast.success("Disabled successfully", {
           id: toastId,
         });
-        getCronJobs()
+        getCronJobs();
       } catch (err) {
         toast.error("Disabling failed", {
           id: toastId,
         });
         console.error("Error in disabling job");
       }
+    }
+  };
+
+  const handleDelete = async (cronjobId: string) => {
+    try {
+      setDeleteLoading(true);
+      const res = await API.delete("/delete", {
+        params: {
+          cronjobId,
+          userId: customSession.user.id,
+        },
+      });
+      console.log(res.data);
+      setDeleteLoading(false);
+      setDialogOpen(false);
+      getCronJobs();
+      toast.success("Cron job deleted succesfully");
+    } catch (err) {
+      setDialogOpen(false);
+      setDeleteLoading(false);
+      console.error("Error in deleting cronjob : ", err);
     }
   };
 
@@ -98,7 +133,7 @@ export default function Page() {
   if (loading) {
     return (
       <div className="w-full h-[80vh] flex items-center justify-center">
-        <Loader />
+        <LoaderIcon className="w-6 h-6 loader-icon" />
       </div>
     );
   }
@@ -120,6 +155,14 @@ export default function Page() {
       </div>
       <div className="w-full flex flex-col">
         <div className="w-full h-[1px] bg-slate-100"></div>
+        {cronjobs.length === 0 && (
+          <div className="w-full h-[50vh] flex items-center justify-center">
+            <p className="text-sm text-gray-400">
+              It looks like you don&apos;t have any cron jobs yet. Create one to
+              see it displayed here!
+            </p>
+          </div>
+        )}
         {cronjobs.map((job) => (
           <>
             <div
@@ -171,7 +214,44 @@ export default function Page() {
                     <Pen className="w-3 h-3 mr-2" /> Edit
                   </DropdownMenuItem>
                   <DropdownMenuItem className="cursor-pointer flex items-center">
-                    <Trash className="w-3 h-3 mr-2" /> Delete
+                    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                      <DialogTrigger
+                        className="flex items-center"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                        }}
+                      >
+                        <Trash className="w-3 h-3 mr-2" /> Delete
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader className="font-sans">
+                          <DialogTitle>Are you sure?</DialogTitle>
+                          <DialogDescription className="py-2">
+                            This action cannot be undone. This will permanently
+                            delete your cronjob and remove cronjob data from our
+                            servers.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter>
+                          <Button
+                            variant={"destructive"}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handleDelete(job.id);
+                            }}
+                          >
+                            {deleteLoading ? (
+                              <>
+                                Deleting
+                                <LoaderIcon className="w-4 h-4 loader-icon ml-2" />
+                              </>
+                            ) : (
+                              "Confirm"
+                            )}
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

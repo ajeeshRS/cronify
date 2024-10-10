@@ -14,6 +14,11 @@ export const createCronjob = async (req: Request, res: Response) => {
   try {
     const { userId, title, url, schedule } = req.body;
 
+    if (!userId || !title || !url || !schedule) {
+      res.status(403).json("All fields are required");
+      console.error("All fields are required");
+      return;
+    }
     const newCronJob = await prisma.cronJob.create({
       data: {
         userId,
@@ -87,8 +92,8 @@ export const cronTestRun = async (req: Request, res: Response) => {
       return;
     }
   } catch (err: any) {
-    console.error("Error in test run: ", err.response);
-    if (err.response.status === 403) {
+    console.error("Error in test run: ", err);
+    if (err.response?.status === 403) {
       res.status(err.response.status).json({
         message: "CORS error: Access denied",
       });
@@ -99,7 +104,6 @@ export const cronTestRun = async (req: Request, res: Response) => {
       });
       return;
     } else {
-      console.log(err);
       res.status(500).json({
         message: "Test run failed.",
       });
@@ -111,6 +115,12 @@ export const cronTestRun = async (req: Request, res: Response) => {
 export const enableCronjob = async (req: Request, res: Response) => {
   try {
     const { cronjobId, userId } = req.body;
+
+    if (!userId || !cronjobId) {
+      res.status(403).json("Bad request");
+      throw new Error("Missing userId or cronjobId");
+    }
+
     const user = await prisma.user.findUnique({
       where: {
         id: userId,
@@ -122,7 +132,7 @@ export const enableCronjob = async (req: Request, res: Response) => {
       return;
     }
 
-    const job = await prisma.cronJob.findUnique({
+    const job = await prisma.cronJob.findFirst({
       where: {
         id: cronjobId,
       },
@@ -159,6 +169,12 @@ export const enableCronjob = async (req: Request, res: Response) => {
 export const disableCronjob = async (req: Request, res: Response) => {
   try {
     const { cronjobId, userId } = req.body;
+
+    if (!userId || !cronjobId) {
+      res.status(403).json("Bad request");
+      throw new Error("Missing userId or cronjobId");
+    }
+
     const user = await prisma.user.findUnique({
       where: {
         id: userId,
@@ -170,7 +186,7 @@ export const disableCronjob = async (req: Request, res: Response) => {
       return;
     }
 
-    const job = await prisma.cronJob.findUnique({
+    const job = await prisma.cronJob.findFirst({
       where: {
         id: cronjobId,
       },
@@ -197,6 +213,57 @@ export const disableCronjob = async (req: Request, res: Response) => {
     res.status(200).json("Cronjob disabled successfully");
   } catch (err) {
     console.error("Couldn't disable the job");
+    res.status(500).json("Internal server error");
+    return;
+  }
+};
+
+export const deleteCronjob = async (req: Request, res: Response) => {
+  try {
+    const userId = req.query.userId as string;
+    const cronjobId = req.query.cronjobId as string;
+
+    if (!userId || !cronjobId) {
+      res.status(403).json("Bad request");
+      throw new Error("Missing userId or cronjobId");
+    }
+
+    const user = await prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+    if (!user) {
+      res.status(401).json("Unauthorized");
+      return;
+    }
+
+    const job = await prisma.cronJob.findFirst({
+      where: {
+        id: cronjobId,
+      },
+    });
+
+    if (!job) {
+      res.status(404).json("Cronjob not found");
+      return;
+    }
+
+    await prisma.$transaction([
+      prisma.event.deleteMany({
+        where: {
+          cronJobId: cronjobId,
+        },
+      }),
+      prisma.cronJob.delete({
+        where: {
+          id: cronjobId,
+        },
+      }),
+    ]);
+    res.status(200).json("Cronjob deleted successfully");
+  } catch (err) {
+    console.error("Error in deleting cronjob : ", err);
     res.status(500).json("Internal server error");
     return;
   }

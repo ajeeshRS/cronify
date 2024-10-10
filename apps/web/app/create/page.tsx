@@ -29,6 +29,7 @@ import {
 } from "@/lib/validators/cronjob.validator";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { AxiosError, RawAxiosResponseHeaders } from "axios";
 
 export default function Page() {
   const router = useRouter();
@@ -41,6 +42,11 @@ export default function Page() {
 
   const form = useForm<cronjobCreateSchemaType>({
     resolver: zodResolver(cronjobCreateSchema),
+    defaultValues: {
+      title: "",
+      url: "",
+      schedule: "10",
+    },
   });
 
   const [url, setUrl] = useState("");
@@ -57,7 +63,8 @@ export default function Page() {
         schedule: data.schedule,
       });
       setLoading(false);
-      toast.success(res.data);
+      toast.success(res.data.message);
+      form.reset()
     } catch (err) {
       setLoading(false);
       toast.success("Error in creating cronjob");
@@ -71,9 +78,9 @@ export default function Page() {
       const res = await API.post("/test-run", { url });
       toast.success(res.data.message);
       setTestLoading(false);
+      console.log(res);
     } catch (err: any) {
       setTestLoading(false);
-      console.error(err);
       toast.error(err.response.data.message);
     }
   };

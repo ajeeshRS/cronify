@@ -28,7 +28,6 @@ export const execute = async (url: string) => {
     });
     return response;
   } catch (err) {
-    console.error("Error hitting the url: ", err);
     throw err;
   }
 };

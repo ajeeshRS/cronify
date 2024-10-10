@@ -99,6 +99,10 @@ a {
   height: 20px;
   animation: spin 1s linear infinite;
 }
+.loader-icon {
+  animation: spin 1s linear infinite;
+  transform-origin: center;
+}
 
 @keyframes spin {
   0% {
