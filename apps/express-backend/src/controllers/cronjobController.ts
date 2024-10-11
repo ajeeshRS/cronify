@@ -59,6 +59,8 @@ export const createCronjob = async (req: Request, res: Response) => {
       }
     });
 
+    job.start();
+
     const nextExecutions = getNextTwoExecutions(cronExpression);
 
     for (const nextTime of nextExecutions) {
@@ -266,5 +268,99 @@ export const deleteCronjob = async (req: Request, res: Response) => {
     console.error("Error in deleting cronjob : ", err);
     res.status(500).json("Internal server error");
     return;
+  }
+};
+
+export const updateCronjob = async (req: Request, res: Response) => {
+  try {
+    const { cronjobId, userId, title, url, schedule } = req.body;
+
+    if (!cronjobId || !userId || !title || !url || !schedule) {
+      res.status(400).json({ message: "Missing required fields" });
+      return;
+    }
+
+    const cronjob = await prisma.cronJob.findFirst({
+      where: {
+        userId,
+        id: cronjobId,
+      },
+    });
+
+    if (!cronjob) {
+      res.status(404).json({ message: "Cronjob not found" });
+      return;
+    }
+
+    const updated = await prisma.cronJob.update({
+      where: {
+        userId,
+        id: cronjobId,
+      },
+      data: {
+        cronSchedule: schedule,
+        title,
+        url,
+      },
+    });
+    console.log(updated);
+    if (!updated) {
+      res.status(400).json({ message: "Couldn't update cronjob" });
+      return;
+    }
+
+    const ExistingJob = scheduledjobs.get(updated.id);
+    if (ExistingJob) {
+      ExistingJob.stop();
+      scheduledjobs.delete(updated.id);
+
+      const cronExpression = getCronExpression(updated.cronSchedule);
+
+      const newScheduledJob = cron.schedule(cronExpression, async () => {
+        const executionTime = new Date();
+        try {
+          const response = await execute(url);
+          await prisma.event.create({
+            data: {
+              cronJobId: updated.id,
+              time: executionTime,
+              status: "SUCCESS",
+            },
+          });
+          console.log(
+            `Cron job ${updated.title} executed successfully at ${executionTime}`
+          );
+        } catch (err) {
+          await prisma.event.create({
+            data: {
+              cronJobId: updated.id,
+              time: executionTime,
+              status: "FAILURE",
+            },
+          });
+          console.error("error in executng cron job :", err);
+        }
+      });
+      await setCache(`cronjob:${updated.id}`, JSON.stringify(updated));
+      scheduledjobs.set(updated.id, newScheduledJob);
+      newScheduledJob.start();
+
+      const nextExecutions = getNextTwoExecutions(cronExpression);
+
+      for (const nextTime of nextExecutions) {
+        await prisma.event.create({
+          data: {
+            cronJobId: updated.id,
+            time: nextTime,
+            status: "PENDING",
+          },
+        });
+      }
+    }
+
+    res.status(200).json({ message: "Cronjob updated!" });
+  } catch (err) {
+    console.error("Error in updating cronjob: ", err);
+    res.status(500).json({ message: "Internal server error" });
   }
 };

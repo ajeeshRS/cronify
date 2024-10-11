@@ -1,6 +1,12 @@
 "use client";
-import { useForm } from "react-hook-form";
-import { roboto } from "../fonts/font";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -9,9 +15,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { useState } from "react";
 import {
   Select,
   SelectContent,
@@ -19,79 +22,48 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { API } from "../config/axios";
-import { CustomSession } from "@/lib/auth";
+import { LoaderIcon, Pen } from "lucide-react";
+import { Button } from "./ui/button";
+import { useState } from "react";
+import { Input } from "./ui/input";
+import { useForm } from "react-hook-form";
 import {
-  cronjobCreateSchema,
-  cronjobCreateSchemaType,
+  cronjobUpdateSchema,
+  cronjobUpdateSchemaType,
 } from "@/lib/validators/cronjob.validator";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { toast } from "sonner";
 
-export default function Page() {
-  const router = useRouter();
-  const session = useSession();
-  if (session.status !== "loading" && !session?.data?.user) {
-    router.push("/login");
-  }
-
-  const custmSession = session.data as CustomSession;
-
-  const form = useForm<cronjobCreateSchemaType>({
-    resolver: zodResolver(cronjobCreateSchema),
-    defaultValues: {
-      title: "",
-      url: "",
-      schedule: "10",
-    },
-  });
-
+export default function EditDialog({ job }: any) {
+  const [editLoading, setEditLoading] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [testLoading, setTestLoading] = useState(false);
 
-  const handleSubmit = async (data: cronjobCreateSchemaType) => {
-    try {
-      setLoading(true);
-      const res = await API.post("/create", {
-        userId: custmSession.user.id,
-        title: data.title,
-        url: data.url,
-        schedule: data.schedule,
-      });
-      setLoading(false);
-      toast.success(res.data.message);
-      form.reset()
-    } catch (err) {
-      setLoading(false);
-      toast.success("Error in creating cronjob");
-      console.error("Error in creating cronjob: ", err);
-    }
-  };
-
-  const handleTestRun = async (url: string) => {
-    try {
-      setTestLoading(true);
-      const res = await API.post("/test-run", { url });
-      toast.success(res.data.message);
-      setTestLoading(false);
-      console.log(res);
-    } catch (err: any) {
-      setTestLoading(false);
-      toast.error(err.response.data.message);
-    }
-  };
-
+  const form = useForm<cronjobUpdateSchemaType>({
+    resolver: zodResolver(cronjobUpdateSchema),
+    defaultValues: {
+      title: job.title,
+      url: job.url,
+      schedule: job.schedule,
+    },
+  });
   return (
-    <div
-      className={`${roboto.className} w-full h-[90vh] flex items-center flex-col justify-center px-20 py-10`}
-    >
-      <div className="w-3/6 border p-10 rounded-xl shadow-sm">
+    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <DialogTrigger
+        className="flex items-center"
+        onClick={(e) => {
+          e.stopPropagation();
+        }}
+      >
+        <Pen className="w-3 h-3 mr-2" /> Edit
+      </DialogTrigger>
+      <DialogContent onClick={(e) => e.stopPropagation()}>
+        <DialogHeader className="font-sans">
+          <DialogTitle>Edit Cronjob</DialogTitle>
+        </DialogHeader>
         <Form {...form}>
-          <h3 className="w-full text-center font-bold text-2xl">Add CronJob</h3>
           <form
-            onSubmit={form.handleSubmit((data) => handleSubmit(data))}
+            onSubmit={form.handleSubmit((data) => console.log(data))}
             className="md:w-full w-5/6"
           >
             <FormField
@@ -99,9 +71,7 @@ export default function Page() {
               name="title"
               render={({ field }) => (
                 <FormItem className="my-2">
-                  <FormLabel>
-                    Title <span className="text-red-500">*</span>
-                  </FormLabel>
+                  <FormLabel>Title</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -114,9 +84,7 @@ export default function Page() {
               name="url"
               render={({ field }) => (
                 <FormItem className="my-2">
-                  <FormLabel>
-                    URL <span className="text-red-500">*</span>
-                  </FormLabel>
+                  <FormLabel>URL</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -129,9 +97,7 @@ export default function Page() {
               name="schedule"
               render={({ field }) => (
                 <FormItem className="my-4">
-                  <FormLabel>
-                    Execution Schedule <span className="text-red-500">*</span>
-                  </FormLabel>
+                  <FormLabel>Execution Schedule</FormLabel>
                   <FormControl>
                     <div className="flex items-center py-2">
                       <span>Every</span>
@@ -160,17 +126,30 @@ export default function Page() {
             <div className="w-full flex items-center justify-end">
               <Button
                 className="w-1/6 mt-3 rounded-3xl mx-1"
-                onClick={form.handleSubmit((data) => handleTestRun(data.url))}
+                onClick={form.handleSubmit((data) => console.log(data.url))}
               >
                 {testLoading ? "Testing..." : "Test run"}
               </Button>
-              <Button className="w-1/6 mt-3 rounded-3xl" type="submit">
-                {loading ? "Adding..." : "Add"}
+              <Button
+                className="w-1/6 mt-3 rounded-3xl mx-1"
+                onClick={(e) => {
+                  e.preventDefault();
+                  // handleEdit(job.id);
+                }}
+              >
+                {editLoading ? (
+                  <>
+                    Updating
+                    <LoaderIcon className="w-4 h-4 loader-icon ml-2" />
+                  </>
+                ) : (
+                  "Update"
+                )}
               </Button>
             </div>
           </form>
         </Form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

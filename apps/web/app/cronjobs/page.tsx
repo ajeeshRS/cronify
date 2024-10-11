@@ -35,6 +35,7 @@ import {
 
 import { API } from "../config/axios";
 import { toast } from "sonner";
+import EditDialog from "@/components/editDialog";
 
 export default function Page() {
   const router = useRouter();
@@ -210,10 +211,19 @@ export default function Page() {
                       </>
                     </DropdownMenuItem>
                   )}
-                  <DropdownMenuItem className="cursor-pointer flex items-center">
-                    <Pen className="w-3 h-3 mr-2" /> Edit
+                  <DropdownMenuItem
+                    className="cursor-pointer flex items-center"
+                    onClick={() =>
+                      router.push(`/cronjobs/edit/${job.id}`)
+                    }
+                  >
+                    <>
+                      <Pen className="w-3 h-3 mr-2" />
+                      <p>Edit</p>
+                    </>
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="cursor-pointer flex items-center">
+
+                  <DropdownMenuItem className="cursor-pointer flex items-center hover:!text-white hover:!bg-red-500 ">
                     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                       <DialogTrigger
                         className="flex items-center"
