@@ -154,6 +154,19 @@ export const enableCronjob = async (req: Request, res: Response) => {
       },
     });
 
+    const cronExpression = getCronExpression(result.cronSchedule);
+    const nextExecutions = getNextTwoExecutions(cronExpression);
+
+    for (const nextTime of nextExecutions) {
+      await prisma.event.create({
+        data: {
+          cronJobId: result.id,
+          time: nextTime,
+          status: "PENDING",
+        },
+      });
+    }
+
     const scheduledjob = scheduledjobs.get(job.id);
     if (scheduledjob) {
       scheduledjob.start();
@@ -207,11 +220,19 @@ export const disableCronjob = async (req: Request, res: Response) => {
         active: false,
       },
     });
+    await prisma.event.deleteMany({
+      where: {
+        cronJobId: cronjobId,
+        status: "PENDING",
+      },
+    });
+
     const scheduledjob = scheduledjobs.get(job.id);
     if (scheduledjob) {
       scheduledjob.stop();
       console.log("job stopped!");
     }
+
     res.status(200).json("Cronjob disabled successfully");
   } catch (err) {
     console.error("Couldn't disable the job");

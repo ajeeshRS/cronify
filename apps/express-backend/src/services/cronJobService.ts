@@ -1,7 +1,12 @@
 import { PrismaClient } from "@prisma/client";
 import { setCache } from "./redisService";
 import cron from "node-cron";
-import { execute, getCronExpression } from "../utils/utils";
+import {
+  execute,
+  getCronExpression,
+  getNextTwoExecutions,
+} from "../utils/utils";
+
 const prisma = new PrismaClient();
 
 export const scheduledjobs = new Map<string, cron.ScheduledTask>();
@@ -22,13 +27,57 @@ export const loadCronJobs = async () => {
         const executionTime = new Date();
         try {
           const res = await execute(url);
-          await prisma.event.create({
-            data: {
+
+          const existingEvent = await prisma.event.findFirst({
+            where: {
               cronJobId: id,
-              time: executionTime,
-              status: "SUCCESS",
+              status: "PENDING",
+            },
+            orderBy: {
+              time: "asc",
             },
           });
+
+          if (existingEvent) {
+            console.log("event updating...");
+            await prisma.event.update({
+              where: {
+                id: existingEvent.id,
+              },
+              data: {
+                status: "SUCCESS",
+              },
+            });
+          } else {
+            console.log("creating event...");
+            await prisma.event.create({
+              data: {
+                cronJobId: id,
+                time: executionTime,
+                status: "SUCCESS",
+              },
+            });
+          }
+
+          const scheduledEvents = await prisma.event.findMany({
+            where: {
+              cronJobId: id,
+              status: "PENDING",
+            },
+          });
+
+          if (scheduledEvents.length === 1) {
+            const nextExecutions = getNextTwoExecutions(cronExpression);
+
+            await prisma.event.create({
+              data: {
+                cronJobId: id,
+                time: nextExecutions[1],
+                status: "PENDING",
+              },
+            });
+          }
+
           console.log(
             `Cron job ${title} executed successfully at ${executionTime}`
           );

@@ -13,7 +13,6 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import Loader from "../../components/loader";
 import { fetchCronJobs } from "../actions/cronActions";
 import { CustomSession } from "@/lib/auth";
 import Link from "next/link";
@@ -35,7 +34,6 @@ import {
 
 import { API } from "../config/axios";
 import { toast } from "sonner";
-import EditDialog from "@/components/editDialog";
 
 export default function Page() {
   const router = useRouter();
@@ -44,7 +42,6 @@ export default function Page() {
   const [loading, setLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false); // State for dropdown open/close
 
   const customSession = session as CustomSession;
 
@@ -115,7 +112,7 @@ export default function Page() {
     if (status === "authenticated" && customSession?.user?.id) {
       try {
         setLoading(true);
-        const data = await fetchCronJobs(); // Action fetches cron jobs for the logged-in user
+        const data = await fetchCronJobs();
         setCronjobs(data);
         setLoading(false);
       } catch (error) {
@@ -155,7 +152,7 @@ export default function Page() {
         </div>
       </div>
       <div className="w-full flex flex-col">
-        <div className="w-full h-[1px] bg-slate-100"></div>
+        {/* <div className="w-full h-[1px] bg-slate-100"></div> */}
         {cronjobs.length === 0 && (
           <div className="w-full h-[50vh] flex items-center justify-center">
             <p className="text-sm text-gray-400">
@@ -168,11 +165,13 @@ export default function Page() {
           <>
             <div
               key={job.id}
-              className="w-full flex items-center justify-between my-4"
+              className="w-full flex items-center justify-between my-4 border p-5 rounded-lg"
             >
               <div className="flex items-center w-2/6">
                 <div className="flex flex-col items-start justify-center pl-4 text-sm">
-                  <p className="text-lg">{job.title}</p>
+                  <Link href={`/cronjobs/${job.id}`} className="text-lg hover:underline">
+                    {job.title?.toUpperCase()}
+                  </Link>
                 </div>
               </div>
               <Link
@@ -213,9 +212,7 @@ export default function Page() {
                   )}
                   <DropdownMenuItem
                     className="cursor-pointer flex items-center"
-                    onClick={() =>
-                      router.push(`/cronjobs/edit/${job.id}`)
-                    }
+                    onClick={() => router.push(`/cronjobs/edit/${job.id}`)}
                   >
                     <>
                       <Pen className="w-3 h-3 mr-2" />
@@ -266,7 +263,7 @@ export default function Page() {
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
-            <div className="w-full h-[1px] bg-slate-100"></div>
+            {/* <div className="w-full h-[1px] bg-slate-100"></div> */}
           </>
         ))}
       </div>

@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { BellRing, CalendarCheck, Timer, Vote } from "lucide-react";
-import Faq from "@/components/faq";
+import Faq from "@/components/Faq";
 import { useSession } from "next-auth/react";
 export default function Home() {
   const { data: session } = useSession();

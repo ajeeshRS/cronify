@@ -5,7 +5,7 @@ import { roboto } from "../fonts/font";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { GreetingMessage } from "@/components/greetings";
+import { GreetingMessage } from "@/components/Greetings";
 
 export default function Page() {
   const router = useRouter();
