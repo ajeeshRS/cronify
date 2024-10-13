@@ -77,7 +77,7 @@ export const loadCronJobs = async () => {
               },
             });
           }
-
+          await deleteOlderEvents(id);
           console.log(
             `Cron job ${title} executed successfully at ${executionTime}`
           );
@@ -98,5 +98,40 @@ export const loadCronJobs = async () => {
     console.log("Cronjobs loaded ✅");
   } catch (err) {
     console.error("Error in loading cronjobs fron DB : ", err);
+  }
+};
+
+export const deleteOlderEvents = async (cronJobId: string) => {
+  try {
+    const eventCount = await prisma.event.count({
+      where: {
+        cronJobId,
+      },
+    });
+
+    if (eventCount > 50) {
+      const olderEvents = await prisma.event.findMany({
+        where: {
+          cronJobId,
+        },
+        orderBy: {
+          time: "asc",
+        },
+        skip: 50,
+      });
+      const olderEventIds = olderEvents.map((event) => event.id);
+      const result = await prisma.event.deleteMany({
+        where: {
+          id: {
+            in: olderEventIds,
+          },
+        },
+      });
+      console.log(
+        `Deleted ${olderEventIds.length} older events for cronjob : ${cronJobId}`
+      );
+    }
+  } catch (err) {
+    console.error("Error in deleting older events : ", err);
   }
 };

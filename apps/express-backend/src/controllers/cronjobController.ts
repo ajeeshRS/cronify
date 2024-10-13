@@ -7,7 +7,7 @@ import {
   getNextTwoExecutions,
 } from "../utils/utils";
 import { setCache } from "../services/redisService";
-import { scheduledjobs } from "..//services/cronJobService";
+import { deleteOlderEvents, scheduledjobs } from "..//services/cronJobService";
 const prisma = new PrismaClient();
 
 export const createCronjob = async (req: Request, res: Response) => {
@@ -166,7 +166,7 @@ export const enableCronjob = async (req: Request, res: Response) => {
         },
       });
     }
-
+    await deleteOlderEvents(result.id);
     const scheduledjob = scheduledjobs.get(job.id);
     if (scheduledjob) {
       scheduledjob.start();
@@ -377,6 +377,7 @@ export const updateCronjob = async (req: Request, res: Response) => {
           },
         });
       }
+      await deleteOlderEvents(cronjobId);
     }
 
     res.status(200).json({ message: "Cronjob updated!" });
