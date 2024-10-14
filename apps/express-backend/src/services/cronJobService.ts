@@ -37,6 +37,7 @@ export const loadCronJobs = async () => {
               time: "asc",
             },
           });
+          console.log("existing event:", existingEvent);
 
           if (existingEvent) {
             console.log("event updating...");
@@ -82,13 +83,34 @@ export const loadCronJobs = async () => {
             `Cron job ${title} executed successfully at ${executionTime}`
           );
         } catch (err) {
-          await prisma.event.create({
-            data: {
+          const existingEvent = await prisma.event.findFirst({
+            where: {
               cronJobId: id,
-              time: executionTime,
-              status: "FAILURE",
+              status: "PENDING",
+            },
+            orderBy: {
+              time: "asc",
             },
           });
+
+          if (existingEvent) {
+            await prisma.event.update({
+              where: {
+                id: existingEvent.id,
+              },
+              data: {
+                status: "FAILURE",
+              },
+            });
+          } else {
+            await prisma.event.create({
+              data: {
+                cronJobId: id,
+                time: executionTime,
+                status: "FAILURE",
+              },
+            });
+          }
           console.error(`Error in executing ${title} job: `, err);
         }
       });
@@ -113,13 +135,17 @@ export const deleteOlderEvents = async (cronJobId: string) => {
       const olderEvents = await prisma.event.findMany({
         where: {
           cronJobId,
+          status: {
+            in: ["FAILURE", "SUCCESS"],
+          },
         },
         orderBy: {
-          time: "asc",
+          time: "desc",
         },
         skip: 50,
       });
       const olderEventIds = olderEvents.map((event) => event.id);
+      console.log("older events : ", olderEvents);
       const result = await prisma.event.deleteMany({
         where: {
           id: {

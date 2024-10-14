@@ -166,13 +166,13 @@ export const enableCronjob = async (req: Request, res: Response) => {
         },
       });
     }
-    await deleteOlderEvents(result.id);
     const scheduledjob = scheduledjobs.get(job.id);
     if (scheduledjob) {
       scheduledjob.start();
       console.log("job restarted!");
     }
-
+    
+    await deleteOlderEvents(cronjobId);
     res.status(200).json("Cronjob enabled successfully");
   } catch (err) {
     console.error("Couldn't enable the job");
