@@ -17,6 +17,10 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { useSession } from "next-auth/react";
+import { Button } from "@/components/ui/button";
+import { CustomSession } from "@/lib/auth";
+import { API } from "@/app/config/axios";
+import { toast } from "sonner";
 
 export default function Page() {
   const [fetching, setFetching] = useState(false);
@@ -29,6 +33,7 @@ export default function Page() {
   const router = useRouter();
   const { data: session, status } = useSession();
 
+  const customSession = session as CustomSession;
   const ITEMS_PER_PAGE = 4;
 
   const totalPages = Math.ceil(cronjob.totalEvents / ITEMS_PER_PAGE);
@@ -60,23 +65,66 @@ export default function Page() {
     return `${dateStr} - ${timeStr}`;
   };
 
-  useEffect(() => {
-    const getCronjob = async () => {
-      setFetching(true);
-      const job = await fetchCronjobWithEvents(id, currentPage, ITEMS_PER_PAGE);
-      const nxtExecutions = await fetchNextExectutions(id);
-      setFetching(false);
-      console.log(job);
-      setNextEvents(nxtExecutions);
-      setCronjob(job);
-      if (job) {
-        const prevEvents = job.previousEvents.filter(
-          (event) => event.status !== "PENDING"
-        );
-        console.log("preveve:", prevEvents);
-        setPreviousEvents(prevEvents);
+  const enableCronjob = async (cronjobId: string) => {
+    if (status === "authenticated" && customSession?.user?.id) {
+      const toastId = toast.loading("Enabling..");
+      try {
+        const res = await API.put(`/enable`, {
+          cronjobId,
+          userId: customSession.user.id,
+        });
+        toast.success("Enabled successfully", {
+          id: toastId,
+        });
+        getCronjob();
+      } catch (err) {
+        toast.error("Enabling failed", {
+          id: toastId,
+        });
+        console.error("Error in enabling job");
       }
-    };
+    }
+  };
+
+  const disableCronjob = async (cronjobId: string) => {
+    if (status === "authenticated" && customSession?.user?.id) {
+      const toastId = toast.loading("Disabling..");
+      try {
+        const res = await API.put(`/disable`, {
+          cronjobId,
+          userId: customSession.user.id,
+        });
+        toast.success("Disabled successfully", {
+          id: toastId,
+        });
+        getCronjob();
+      } catch (err) {
+        toast.error("Disabling failed", {
+          id: toastId,
+        });
+        console.error("Error in disabling job");
+      }
+    }
+  };
+
+  const getCronjob = async () => {
+    setFetching(true);
+    const job = await fetchCronjobWithEvents(id, currentPage, ITEMS_PER_PAGE);
+    const nxtExecutions = await fetchNextExectutions(id);
+    setFetching(false);
+    console.log(job);
+    setNextEvents(nxtExecutions);
+    setCronjob(job);
+    if (job) {
+      const prevEvents = job.previousEvents.filter(
+        (event) => event.status !== "PENDING"
+      );
+      console.log("preveve:", prevEvents);
+      setPreviousEvents(prevEvents);
+    }
+  };
+
+  useEffect(() => {
     getCronjob();
   }, [id, currentPage]);
 
@@ -108,6 +156,21 @@ export default function Page() {
                 InActive
               </p>
             )}
+            {cronjob.active === true ? (
+              <Button
+                className="rounded-2xl"
+                onClick={() => disableCronjob(cronjob.id)}
+              >
+                Disable
+              </Button>
+            ) : (
+              <Button
+                className="rounded-2xl"
+                onClick={() => enableCronjob(cronjob.id)}
+              >
+                Enable
+              </Button>
+            )}
           </div>
         </div>
         <p className="w-full text-start py-4">{cronjob.url}</p>
@@ -115,8 +178,11 @@ export default function Page() {
           <p className="font-medium text-sm"> Next Executions</p>
           <div className="w-full flex flex-col items-start justify-center mt-3">
             {nextEvents.length > 0 ? (
-              nextEvents.map((event: any) => (
-                <div className="w-full flex items-center justify-between border rounded-xl py-5 px-5 pr-10 my-1">
+              nextEvents.map((event: any, i: number) => (
+                <div
+                  key={i}
+                  className="w-full flex items-center justify-between border rounded-xl py-5 px-5 pr-10 my-1"
+                >
                   <div className="flex items-center">
                     <Clock className="w-6 h-6 rounded-full bg-orange-400 text-white border-none" />
 
