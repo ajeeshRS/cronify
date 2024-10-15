@@ -104,3 +104,37 @@ export const fetchNextExectutions = async (cronJobId: string) => {
     console.error("Error in fetching next executions: ", err);
   }
 };
+
+export const fetchCronjobStats = async (userId: string) => {
+  try {
+    const activeJobCount = await prisma.cronJob.count({
+      where: {
+        userId,
+        active: true,
+      },
+    });
+
+    const inActiveJobCount = await prisma.cronJob.count({
+      where: {
+        userId,
+        active: false,
+      },
+    });
+
+    const failedCronjobs = await prisma.cronJob.count({
+      where: {
+        userId,
+        isFailed: true,
+      },
+    });
+
+    return {
+      activeCount: activeJobCount,
+      inActiveCount: inActiveJobCount,
+      failedCount: failedCronjobs,
+    };
+  } catch (err) {
+    console.error("Error in fetching cron jobs stats : ", err);
+    throw new Error("Failed to get cronjobs stats");
+  }
+};

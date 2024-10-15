@@ -79,6 +79,14 @@ export const loadCronJobs = async () => {
             });
           }
           await deleteOlderEvents(id);
+          await prisma.cronJob.update({
+            where: {
+              id,
+            },
+            data: {
+              isFailed: false,
+            },
+          });
           console.log(
             `Cron job ${title} executed successfully at ${executionTime}`
           );
@@ -108,6 +116,33 @@ export const loadCronJobs = async () => {
                 cronJobId: id,
                 time: executionTime,
                 status: "FAILURE",
+              },
+            });
+          }
+          await prisma.cronJob.update({
+            where: {
+              id,
+            },
+            data: {
+              isFailed: true,
+            },
+          });
+
+          const scheduledEvents = await prisma.event.findMany({
+            where: {
+              cronJobId: id,
+              status: "PENDING",
+            },
+          });
+
+          if (scheduledEvents.length === 1) {
+            const nextExecutions = getNextTwoExecutions(cronExpression);
+
+            await prisma.event.create({
+              data: {
+                cronJobId: id,
+                time: nextExecutions[1],
+                status: "PENDING",
               },
             });
           }

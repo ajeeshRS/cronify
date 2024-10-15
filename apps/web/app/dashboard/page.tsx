@@ -6,21 +6,41 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { GreetingMessage } from "@/components/Greetings";
+import { useEffect, useState } from "react";
+import { CustomSession } from "@/lib/auth";
+import { fetchCronjobStats } from "../actions/cronActions";
 
 export default function Page() {
   const router = useRouter();
-
-  const session = useSession();
-  if (session.status !== "loading" && !session?.data?.user) {
+  const [enabledJobCount, setEnabledJobCount] = useState(0);
+  const [disabledJobCount, setDisabledJobCount] = useState(0);
+  const [failedCount, setFailedCount] = useState(0);
+  const { data: session, status } = useSession();
+  const customSession = session as CustomSession;
+  if (status !== "loading" && !session?.user) {
     router.push("/login");
   }
+
+  useEffect(() => {
+    const getCronjobStats = async () => {
+      try {
+        const result = await fetchCronjobStats(customSession.user.id);
+        setEnabledJobCount(result.activeCount);
+        setDisabledJobCount(result.inActiveCount);
+        setFailedCount(result.failedCount);
+      } catch (err) {
+        console.log("Error in getting cronjob Stats : ", err);
+      }
+    };
+    getCronjobStats();
+  }, []);
 
   return (
     <div
       className={`${roboto.className} w-full h-[90vh] flex items-start flex-col justify-start px-20 py-10`}
     >
       <h2 className="font-extrabold text-2xl">
-        <GreetingMessage username={session.data?.user?.name as string} />
+        <GreetingMessage username={session?.user?.name as string} />
       </h2>
       <div className="w-full h-[1px] bg-gray-300 my-2"></div>
       <div className="py-4 w-full flex justify-between">
@@ -42,19 +62,21 @@ export default function Page() {
       </div>
       <div className="w-full flex items-center justify-between py-4">
         <div className="w-1/6 min-h-28 rounded-xl bg-slate-50 shadow-md text-black flex items-center justify-center flex-col">
-          <p className="font-semibold text-3xl">2</p>
+          <p className="font-semibold text-3xl">{enabledJobCount}</p>
           <p className="text-base py-1">Enabled CronJobs</p>
         </div>
         <div className="w-1/6 h-28 rounded-xl bg-slate-50 shadow-md text-black flex items-center justify-center flex-col">
-          <p className="font-semibold text-3xl">0</p>
+          <p className="font-semibold text-3xl">{disabledJobCount}</p>
           <p className="text-base py-1">Disabled CronJobs</p>
         </div>
         <div className="w-1/6 h-28 rounded-xl bg-slate-50 shadow-md text-black flex items-center justify-center flex-col">
-          <p className="font-semibold text-3xl">1</p>
+          <p className="font-semibold text-3xl">
+            {enabledJobCount - failedCount}
+          </p>
           <p className="text-base py-1"> Successful CronJobs</p>
         </div>
         <div className="w-1/6 h-28 rounded-xl bg-slate-50 shadow-md text-black flex items-center justify-center flex-col">
-          <p className="font-semibold text-3xl">1</p>
+          <p className="font-semibold text-3xl">{failedCount}</p>
           <p className="text-base py-1">Failed CronJobs</p>
         </div>
       </div>
