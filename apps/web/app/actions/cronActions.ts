@@ -107,6 +107,12 @@ export const fetchNextExectutions = async (cronJobId: string) => {
 
 export const fetchCronjobStats = async (userId: string) => {
   try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+      throw new Error("Not authenticated");
+    }
+
     const activeJobCount = await prisma.cronJob.count({
       where: {
         userId,
@@ -136,5 +142,74 @@ export const fetchCronjobStats = async (userId: string) => {
   } catch (err) {
     console.error("Error in fetching cron jobs stats : ", err);
     throw new Error("Failed to get cronjobs stats");
+  }
+};
+
+export const fetchAllEvents = async (
+  userId: string,
+  page: number,
+  itemsPerPage: number
+) => {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+      throw new Error("Not authenticated");
+    }
+
+    const { cronJobs } = (await prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+      select: {
+        cronJobs: {
+          select: {
+            url: true,
+            previousEvents: {
+              where: {
+                status: {
+                  not: "PENDING",
+                },
+              },
+              select: {
+                id: true,
+                time: true,
+                status: true,
+                createdAt: true,
+              },
+            },
+          },
+        },
+      },
+    })) || { cronJobs: [] };
+
+    const allEvents = cronJobs.flatMap((cronJob) =>
+      cronJob.previousEvents.map((event) => ({
+        ...event,
+        cronJobUrl: cronJob.url,
+      }))
+    );
+
+    const sortedEvents = allEvents?.sort((a, b) => {
+      return b.time < a.time ? -1 : 1; // Sort by `time` in descending order
+    });
+
+    const slicedEvents = sortedEvents?.slice(0, 25);
+
+    if (slicedEvents) {
+      const totalEvents = slicedEvents.length;
+      const paginatedEvents = slicedEvents.slice(
+        (page - 1) * itemsPerPage,
+        page * itemsPerPage
+      );
+
+      return {
+        events: paginatedEvents,
+        totalEvents,
+      };
+    }
+  } catch (err: any) {
+    console.error("Error in fetching events : ", err);
+    throw new Error("Error in fetching events : ", err.messag);
   }
 };

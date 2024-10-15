@@ -3,20 +3,34 @@ import { Button } from "@/components/ui/button";
 import { Clock, Eye, Plus } from "lucide-react";
 import { roboto } from "../fonts/font";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { GreetingMessage } from "@/components/Greetings";
 import { useEffect, useState } from "react";
 import { CustomSession } from "@/lib/auth";
-import { fetchCronjobStats } from "../actions/cronActions";
+import { fetchAllEvents, fetchCronjobStats } from "../actions/cronActions";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 export default function Page() {
   const router = useRouter();
   const [enabledJobCount, setEnabledJobCount] = useState(0);
   const [disabledJobCount, setDisabledJobCount] = useState(0);
   const [failedCount, setFailedCount] = useState(0);
+  const [events, setEvents] = useState<any>([]);
+  const [totalEvents, setTotalEvents] = useState(0);
   const { data: session, status } = useSession();
+  const searchParams = useSearchParams();
+
   const customSession = session as CustomSession;
+
   if (status !== "loading" && !session?.user) {
     router.push("/login");
   }
@@ -35,9 +49,59 @@ export default function Page() {
     getCronjobStats();
   }, []);
 
+  const ITEMS_PER_PAGE = 5;
+
+  const totalPages = Math.ceil(totalEvents / ITEMS_PER_PAGE);
+  const currentPage = parseInt(searchParams.get("page") ?? "1");
+
+  const handlePageChange = (page: number) => {
+    const params = new URLSearchParams(searchParams);
+    params.set("page", page.toString());
+    router.push(`/dashboard?${params.toString()}`);
+  };
+
+  const isSameDay = (date1: Date, date2: Date) => {
+    if (
+      date1.getFullYear() === date2.getFullYear() &&
+      date1.getMonth() === date2.getMonth() &&
+      date1.getDate() === date2.getDate()
+    ) {
+      return true;
+    } else {
+      return false;
+    }
+  };
+
+  const getDate = (date: Date) => {
+    const dateStr = new Date(date).toDateString();
+    const timeStr = new Date(date).toLocaleTimeString("en-US", {
+      hour12: true,
+    });
+    return `${dateStr} - ${timeStr}`;
+  };
+
+  const getEvents = async () => {
+    // setFetching(true);
+    if (customSession) {
+      const result = await fetchAllEvents(
+        customSession.user.id,
+        currentPage,
+        ITEMS_PER_PAGE
+      );
+      if (result) {
+        setEvents(result.events);
+        setTotalEvents(result.totalEvents)
+      }
+    }
+  };
+
+  useEffect(() => {
+    getEvents();
+  }, [currentPage, customSession]);
+
   return (
     <div
-      className={`${roboto.className} w-full h-[90vh] flex items-start flex-col justify-start px-20 py-10`}
+      className={`${roboto.className} w-full min-h-[90vh] flex items-start flex-col justify-start px-20 py-10`}
     >
       <h2 className="font-extrabold text-2xl">
         <GreetingMessage username={session?.user?.name as string} />
@@ -80,114 +144,68 @@ export default function Page() {
           <p className="text-base py-1">Failed CronJobs</p>
         </div>
       </div>
-      <div className="w-full flex items-start justify-start flex-col py-4">
+      <div className="w-full h-fit flex items-start justify-start flex-col py-10">
         <p className="font-medium text-sm"> Recent Events</p>
-
-        <div className="w-full flex flex-col items-start justify-center">
-          <div className="w-full h-[1px] bg-gray-300 my-2"></div>
-
-          <div className="w-full flex items-center justify-between">
-            <div className="flex items-center w-3/6">
-              <Clock className="w-6 h-6 rounded-full bg-green-400 text-white border-none" />
-              <div className="flex flex-col items-start justify-center pl-4 text-sm">
-                <p>Cronjob execution: Successful (200 OK)</p>
-                <Link
-                  href={"https://voxverse.onrender.com/user/get/latest-blogs"}
-                  className="py-1 hover:underline"
-                >
-                  https://voxverse.onrender.com/user/get/latest-blogs
-                </Link>
+        <div className="w-full flex flex-col items-start justify-center my-3">
+          {events.map((event: any) => (
+            <div className="w-full flex items-center justify-between border rounded-xl py-5 px-5 pr-10 my-1">
+              <div className="flex items-center">
+                {event.status === "SUCCESS" ? (
+                  <Clock className="w-6 h-6 rounded-full bg-green-400 text-white border-none" />
+                ) : (
+                  <Clock className="w-6 h-6 rounded-full bg-red-400 text-white border-none" />
+                )}
+                <div className="flex flex-col items-start justify-center pl-4 text-sm">
+                  <p>{`Cronjob execution: ${event.status} (${event.status === "SUCCESS" ? "200 OK" : "500 NOT OK"} )`}</p>
+                  <p>{event.cronJobUrl}</p>
+                </div>
               </div>
-            </div>
-            <p className="w-2/6 flex items-center justify-start text-sm">
-              Today at 5:50:22 PM
-            </p>
-            <Button size={"sm"} className="py-2 px-3">
-              Show details
-            </Button>
-          </div>
-          <div className="w-full h-[1px] bg-gray-300 my-2"></div>
-
-          <div className="w-full flex items-center justify-between">
-            <div className="flex items-center w-3/6">
-              <Clock className="w-6 h-6 rounded-full bg-green-400 text-white border-none" />
-              <div className="flex flex-col items-start justify-center pl-4 text-sm">
-                <p>Cronjob execution: Successful (200 OK)</p>
-                <p className="py-1">
-                  {" "}
-                  https://voxverse.onrender.com/user/get/latest-blogs
+              {isSameDay(new Date(), new Date(event.time)) ? (
+                <p className="text-sm">
+                  Executed Today at{" "}
+                  {new Date(event.time).toLocaleTimeString("en-US", {
+                    hour12: true,
+                  })}
                 </p>
-              </div>
+              ) : (
+                <p className="text-sm">Executed on {getDate(event.time)}</p>
+              )}
             </div>
-            <p className="w-2/6 flex items-center justify-start text-sm">
-              Today at 5:50:22 PM
-            </p>
-            <Button size={"sm"} className="py-2 px-3">
-              Show details
-            </Button>
-          </div>
-          <div className="w-full h-[1px] bg-gray-300 my-2"></div>
-
-          <div className="w-full flex items-center justify-between">
-            <div className="flex items-center w-3/6">
-              <Clock className="w-6 h-6 rounded-full bg-red-400 text-white border-none" />
-              <div className="flex flex-col items-start justify-center pl-4 text-sm">
-                <p>Cronjob execution: Failed (404 NOT FOUND)</p>
-                <p className="py-1">
-                  {" "}
-                  https://voxverse.onrender.com/user/get/latest-blogs
-                </p>
-              </div>
-            </div>
-            <p className="w-2/6 flex items-center justify-start text-sm">
-              Today at 5:50:22 PM
-            </p>
-            <Button size={"sm"} className="py-2 px-3">
-              Show details
-            </Button>
-          </div>
-          <div className="w-full h-[1px] bg-gray-300 my-2"></div>
-
-          <div className="w-full flex items-center justify-between">
-            <div className="flex items-center w-3/6">
-              <Clock className="w-6 h-6 rounded-full bg-green-400 text-white border-none" />
-              <div className="flex flex-col items-start justify-center pl-4 text-sm">
-                <p>Cronjob execution: Successful (200 OK)</p>
-                <p className="py-1">
-                  {" "}
-                  https://voxverse.onrender.com/user/get/latest-blogs
-                </p>
-              </div>
-            </div>
-            <p className="w-2/6 flex items-center justify-start text-sm">
-              Today at 5:50:22 PM
-            </p>
-            <Button size={"sm"} className="py-2 px-3">
-              Show details
-            </Button>
-          </div>
-          <div className="w-full h-[1px] bg-gray-300 my-2"></div>
-
-          <div className="w-full flex items-center justify-between">
-            <div className="flex items-center w-3/6">
-              <Clock className="w-6 h-6 rounded-full bg-green-400 text-white border-none" />
-              <div className="flex flex-col items-start justify-center pl-4 text-sm">
-                <p>Cronjob execution: Successful (200 OK)</p>
-                <p className="py-1">
-                  {" "}
-                  https://voxverse.onrender.com/user/get/latest-blogs
-                </p>
-              </div>
-            </div>
-            <p className="w-2/6 flex items-center justify-start text-sm">
-              Today at 5:50:22 PM
-            </p>
-            <Button size={"sm"} className="py-2 px-3">
-              Show details
-            </Button>
-          </div>
-
-          <div className="w-full h-[1px] bg-gray-300 my-2"></div>
+          ))}
+          {totalPages > 0 && (
+            <Pagination className="mt-10">
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    href="#"
+                    onClick={() =>
+                      handlePageChange(Math.max(currentPage - 1, 1))
+                    }
+                  />
+                </PaginationItem>
+                {[...Array(totalPages)].map((_, index) => (
+                  <PaginationItem key={index}>
+                    <PaginationLink
+                      href="#"
+                      isActive={currentPage === index + 1}
+                      onClick={() => handlePageChange(index + 1)}
+                    >
+                      {index + 1}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+                {/* {totalPages > 3 && <PaginationEllipsis />} */}
+                <PaginationItem>
+                  <PaginationNext
+                    href="#"
+                    onClick={() =>
+                      handlePageChange(Math.min(currentPage + 1, totalPages))
+                    }
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          )}
         </div>
       </div>
     </div>
