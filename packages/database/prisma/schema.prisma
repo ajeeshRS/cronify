@@ -22,11 +22,11 @@ model CronJob {
   url            String
   cronSchedule   String
   active         Boolean
-  nextEvents     String[]
   previousEvents Event[]
+  isFailed       Boolean @default(false)
   userId         String
   user           User     @relation(fields: [userId], references: [id])
-  createdAt       DateTime @default(now())
+  createdAt      DateTime @default(now())
 }
 
 model Event {
