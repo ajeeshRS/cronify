@@ -13,19 +13,24 @@ export const scheduledjobs = new Map<string, cron.ScheduledTask>();
 
 export const loadCronJobs = async () => {
   try {
+    // gets existing cronjobs from DB
     const cronJobs = await prisma.cronJob.findMany({
       where: { active: true },
     });
+
+    // Iterate through each cronjob and restart
     for (const job of cronJobs) {
       const { cronSchedule, title, id, url } = job;
 
       const cronExpression = getCronExpression(cronSchedule);
 
+      // schedule the cronjob
       const scheduledJob = cron.schedule(cronExpression, async () => {
         const executionTime = new Date();
         try {
           const res = await execute(url);
 
+          // check for existing events
           const existingEvent = await prisma.event.findFirst({
             where: {
               cronJobId: id,
@@ -37,6 +42,7 @@ export const loadCronJobs = async () => {
           });
           console.log("existing event:", existingEvent);
 
+          // if event already exist - update else create
           if (existingEvent) {
             console.log("event updating...");
             await prisma.event.update({
@@ -57,7 +63,7 @@ export const loadCronJobs = async () => {
               },
             });
           }
-
+          // checks for the scheduled events
           const scheduledEvents = await prisma.event.findMany({
             where: {
               cronJobId: id,
@@ -65,6 +71,7 @@ export const loadCronJobs = async () => {
             },
           });
 
+          // if scheduled events length is 1 then create one
           if (scheduledEvents.length === 1) {
             const nextExecutions = getNextTwoExecutions(cronExpression);
 
@@ -76,7 +83,11 @@ export const loadCronJobs = async () => {
               },
             });
           }
+
+          // clear up older events
           await deleteOlderEvents(id);
+
+          // updates the cronjob isFailed status
           await prisma.cronJob.update({
             where: {
               id,
@@ -85,10 +96,12 @@ export const loadCronJobs = async () => {
               isFailed: false,
             },
           });
+
           console.log(
             `Cron job ${title} executed successfully at ${executionTime}`
           );
         } catch (err) {
+          // Error handling
           const existingEvent = await prisma.event.findFirst({
             where: {
               cronJobId: id,
@@ -99,6 +112,7 @@ export const loadCronJobs = async () => {
             },
           });
 
+          // if the event exist update status with FAILURE else create one
           if (existingEvent) {
             await prisma.event.update({
               where: {
@@ -117,6 +131,7 @@ export const loadCronJobs = async () => {
               },
             });
           }
+          // updates cronjob isFailed status
           await prisma.cronJob.update({
             where: {
               id,
@@ -157,10 +172,12 @@ export const loadCronJobs = async () => {
             },
           });
 
+          // sends cronjob failed mail
           await sendServiceFailMail(result?.user.email as string, title);
           console.error(`Error in executing ${title} job: `, err);
         }
       });
+      // save the job in-memory and starts
       scheduledjobs.set(id, scheduledJob);
       scheduledJob.start();
     }
@@ -193,6 +210,7 @@ export const deleteOlderEvents = async (cronJobId: string) => {
       });
       const olderEventIds = olderEvents.map((event) => event.id);
       console.log("older events : ", olderEvents);
+      
       const result = await prisma.event.deleteMany({
         where: {
           id: {
