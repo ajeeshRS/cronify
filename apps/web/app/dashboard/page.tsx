@@ -104,9 +104,11 @@ export default function Page() {
       <div className="w-full h-fit flex items-start justify-start flex-col py-10">
         <p className="font-medium text-sm"> Recent Events</p>
         <div className="w-full flex flex-col items-start justify-center my-3">
-          {events.map((event: any, i: number) => (
+          {events.length >0 ? events.map((event: any, i: number) => (
             <EventCard key={i} event={event} />
-          ))}
+          )) : <p className="text-sm text-gray-500 flex items-center my-10">Recent events will show here.</p>
+        }
+
           {totalPages > 0 && (
             <PaginationComponent
               currentPage={currentPage}

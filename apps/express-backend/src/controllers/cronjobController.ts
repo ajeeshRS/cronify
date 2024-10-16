@@ -6,8 +6,8 @@ import {
   getCronExpression,
   getNextTwoExecutions,
 } from "../utils/utils";
-import { setCache } from "../services/redisService";
 import { deleteOlderEvents, scheduledjobs } from "..//services/cronJobService";
+import { sendServiceFailMail } from "../services/mailService";
 const prisma = new PrismaClient();
 
 export const createCronjob = async (req: Request, res: Response) => {
@@ -29,7 +29,6 @@ export const createCronjob = async (req: Request, res: Response) => {
       },
     });
 
-    await setCache(`cronjob:${newCronJob.id}`, JSON.stringify(newCronJob));
     const cronExpression = getCronExpression(schedule);
 
     const job = cron.schedule(cronExpression, async () => {
@@ -55,6 +54,12 @@ export const createCronjob = async (req: Request, res: Response) => {
             status: "FAILURE",
           },
         });
+        const user = await prisma.user.findUnique({
+          where: {
+            id: userId,
+          },
+        });
+        await sendServiceFailMail(user?.email as string, newCronJob.title);
         console.error("error in executng cron job :", err);
       }
     });
@@ -171,7 +176,7 @@ export const enableCronjob = async (req: Request, res: Response) => {
       scheduledjob.start();
       console.log("job restarted!");
     }
-    
+
     await deleteOlderEvents(cronjobId);
     res.status(200).json("Cronjob enabled successfully");
   } catch (err) {
@@ -362,7 +367,6 @@ export const updateCronjob = async (req: Request, res: Response) => {
           console.error("error in executng cron job :", err);
         }
       });
-      await setCache(`cronjob:${updated.id}`, JSON.stringify(updated));
       scheduledjobs.set(updated.id, newScheduledJob);
       newScheduledJob.start();
 

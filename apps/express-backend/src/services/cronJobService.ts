@@ -1,11 +1,11 @@
 import { PrismaClient } from "@prisma/client";
-import { setCache } from "./redisService";
 import cron from "node-cron";
 import {
   execute,
   getCronExpression,
   getNextTwoExecutions,
 } from "../utils/utils";
+import { sendServiceFailMail } from "./mailService";
 
 const prisma = new PrismaClient();
 
@@ -18,8 +18,6 @@ export const loadCronJobs = async () => {
     });
     for (const job of cronJobs) {
       const { cronSchedule, title, id, url } = job;
-
-      await setCache(`cronjob:${id}`, JSON.stringify(job));
 
       const cronExpression = getCronExpression(cronSchedule);
 
@@ -146,6 +144,20 @@ export const loadCronJobs = async () => {
               },
             });
           }
+          const result = await prisma.cronJob.findFirst({
+            where: {
+              id: id,
+            },
+            select: {
+              user: {
+                select: {
+                  email: true,
+                },
+              },
+            },
+          });
+
+          await sendServiceFailMail(result?.user.email as string, title);
           console.error(`Error in executing ${title} job: `, err);
         }
       });
