@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import SessionWrapper from "../components/SessionWrapper";
 import { raleway } from "./fonts/font";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import Navbar from "@/components/layouts/Navbar";
+import Footer from "@/components/layouts/Footer";
 import { Toaster } from "sonner";
 
 export const metadata: Metadata = {

@@ -21,6 +21,8 @@ import { Button } from "@/components/ui/button";
 import { CustomSession } from "@/lib/auth";
 import { API } from "@/app/config/axios";
 import { toast } from "sonner";
+import CronEventCard from "@/components/cronjobs/CronEventCard";
+import PaginationComponent from "@/components/PaginationComponent";
 
 export default function Page() {
   const [fetching, setFetching] = useState(false);
@@ -43,26 +45,6 @@ export default function Page() {
     const params = new URLSearchParams(searchParams);
     params.set("page", page.toString());
     router.push(`/cronjobs/${id}?${params.toString()}`);
-  };
-
-  const isSameDay = (date1: Date, date2: Date) => {
-    if (
-      date1.getFullYear() === date2.getFullYear() &&
-      date1.getMonth() === date2.getMonth() &&
-      date1.getDate() === date2.getDate()
-    ) {
-      return true;
-    } else {
-      return false;
-    }
-  };
-
-  const getDate = (date: Date) => {
-    const dateStr = new Date(date).toDateString();
-    const timeStr = new Date(date).toLocaleTimeString("en-US", {
-      hour12: true,
-    });
-    return `${dateStr} - ${timeStr}`;
   };
 
   const enableCronjob = async (cronjobId: string) => {
@@ -179,30 +161,7 @@ export default function Page() {
           <div className="w-full flex flex-col items-start justify-center mt-3">
             {nextEvents.length > 0 ? (
               nextEvents.map((event: any, i: number) => (
-                <div
-                  key={i}
-                  className="w-full flex items-center justify-between border rounded-xl py-5 px-5 pr-10 my-1"
-                >
-                  <div className="flex items-center">
-                    <Clock className="w-6 h-6 rounded-full bg-orange-400 text-white border-none" />
-
-                    <div className="flex flex-col items-start justify-center pl-4 text-sm">
-                      <p>{`Cronjob execution: SCHEDULED`}</p>
-                    </div>
-                  </div>
-                  {isSameDay(new Date(), new Date(event.time)) ? (
-                    <p className="text-sm">
-                      Scheduled Today at{" "}
-                      {new Date(event.time).toLocaleTimeString("en-US", {
-                        hour12: true,
-                      })}
-                    </p>
-                  ) : (
-                    <p className="text-sm">
-                      Scheduled on {getDate(event.time)}
-                    </p>
-                  )}
-                </div>
+                <CronEventCard key={i} event={event} />
               ))
             ) : (
               <p className="text-sm text-gray-400 py-3">
@@ -214,63 +173,15 @@ export default function Page() {
         <div className="w-full flex items-start justify-start flex-col py-10">
           <p className="font-medium text-sm"> Recent Events</p>
           <div className="w-full flex flex-col items-start justify-center my-3">
-            {previousEvents.map((event: any) => (
-              <div className="w-full flex items-center justify-between border rounded-xl py-5 px-5 pr-10 my-1">
-                <div className="flex items-center">
-                  {event.status === "SUCCESS" ? (
-                    <Clock className="w-6 h-6 rounded-full bg-green-400 text-white border-none" />
-                  ) : (
-                    <Clock className="w-6 h-6 rounded-full bg-red-400 text-white border-none" />
-                  )}
-                  <div className="flex flex-col items-start justify-center pl-4 text-sm">
-                    <p>{`Cronjob execution: ${event.status} (${event.status === "SUCCESS" ? "200 OK" : "500 NOT OK"} )`}</p>
-                  </div>
-                </div>
-                {isSameDay(new Date(), new Date(event.time)) ? (
-                  <p className="text-sm">
-                    Executed Today at{" "}
-                    {new Date(event.time).toLocaleTimeString("en-US", {
-                      hour12: true,
-                    })}
-                  </p>
-                ) : (
-                  <p className="text-sm">Executed on {getDate(event.time)}</p>
-                )}
-              </div>
+            {previousEvents.map((event: any, i: number) => (
+              <CronEventCard key={i} event={event} />
             ))}
             {totalPages > 0 && (
-              <Pagination className="mt-10">
-                <PaginationContent>
-                  <PaginationItem>
-                    <PaginationPrevious
-                      href="#"
-                      onClick={() =>
-                        handlePageChange(Math.max(currentPage - 1, 1))
-                      }
-                    />
-                  </PaginationItem>
-                  {[...Array(totalPages)].map((_, index) => (
-                    <PaginationItem key={index}>
-                      <PaginationLink
-                        href="#"
-                        isActive={currentPage === index + 1}
-                        onClick={() => handlePageChange(index + 1)}
-                      >
-                        {index + 1}
-                      </PaginationLink>
-                    </PaginationItem>
-                  ))}
-                  {totalPages > 3 && <PaginationEllipsis />}
-                  <PaginationItem>
-                    <PaginationNext
-                      href="#"
-                      onClick={() =>
-                        handlePageChange(Math.min(currentPage + 1, totalPages))
-                      }
-                    />
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
+              <PaginationComponent
+                currentPage={currentPage}
+                totalPages={totalPages}
+                handlePageChange={handlePageChange}
+              />
             )}
           </div>
         </div>

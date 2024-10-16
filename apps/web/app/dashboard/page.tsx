@@ -1,23 +1,16 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { Clock, Eye, Plus } from "lucide-react";
+import { Eye, Plus } from "lucide-react";
 import { roboto } from "../fonts/font";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { GreetingMessage } from "@/components/Greetings";
+import { GreetingMessage } from "@/components/dashboard/Greetings";
 import { useEffect, useState } from "react";
 import { CustomSession } from "@/lib/auth";
 import { fetchAllEvents, fetchCronjobStats } from "../actions/cronActions";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
+import DashboardStats from "@/components/dashboard/DashboardStats";
+import EventCard from "@/components/dashboard/EventCard";
+import PaginationComponent from "@/components/PaginationComponent";
 
 export default function Page() {
   const router = useRouter();
@@ -26,31 +19,16 @@ export default function Page() {
   const [failedCount, setFailedCount] = useState(0);
   const [events, setEvents] = useState<any>([]);
   const [totalEvents, setTotalEvents] = useState(0);
-  const { data: session, status } = useSession();
   const searchParams = useSearchParams();
 
+  const { data: session, status } = useSession();
   const customSession = session as CustomSession;
 
   if (status !== "loading" && !session?.user) {
-    router.push("/login");
+    router.push("/");
   }
 
-  useEffect(() => {
-    const getCronjobStats = async () => {
-      try {
-        const result = await fetchCronjobStats(customSession.user.id);
-        setEnabledJobCount(result.activeCount);
-        setDisabledJobCount(result.inActiveCount);
-        setFailedCount(result.failedCount);
-      } catch (err) {
-        console.log("Error in getting cronjob Stats : ", err);
-      }
-    };
-    getCronjobStats();
-  }, []);
-
   const ITEMS_PER_PAGE = 5;
-
   const totalPages = Math.ceil(totalEvents / ITEMS_PER_PAGE);
   const currentPage = parseInt(searchParams.get("page") ?? "1");
 
@@ -60,29 +38,19 @@ export default function Page() {
     router.push(`/dashboard?${params.toString()}`);
   };
 
-  const isSameDay = (date1: Date, date2: Date) => {
-    if (
-      date1.getFullYear() === date2.getFullYear() &&
-      date1.getMonth() === date2.getMonth() &&
-      date1.getDate() === date2.getDate()
-    ) {
-      return true;
-    } else {
-      return false;
+  const getCronjobStats = async () => {
+    try {
+      const result = await fetchCronjobStats(customSession.user.id);
+      setEnabledJobCount(result.activeCount);
+      setDisabledJobCount(result.inActiveCount);
+      setFailedCount(result.failedCount);
+    } catch (err) {
+      console.log("Error in getting cronjob Stats : ", err);
     }
   };
 
-  const getDate = (date: Date) => {
-    const dateStr = new Date(date).toDateString();
-    const timeStr = new Date(date).toLocaleTimeString("en-US", {
-      hour12: true,
-    });
-    return `${dateStr} - ${timeStr}`;
-  };
-
   const getEvents = async () => {
-    // setFetching(true);
-    if (customSession) {
+    if (session) {
       const result = await fetchAllEvents(
         customSession.user.id,
         currentPage,
@@ -90,21 +58,25 @@ export default function Page() {
       );
       if (result) {
         setEvents(result.events);
-        setTotalEvents(result.totalEvents)
+        setTotalEvents(result.totalEvents);
       }
     }
   };
 
   useEffect(() => {
+    getCronjobStats();
+  }, []);
+
+  useEffect(() => {
     getEvents();
-  }, [currentPage, customSession]);
+  }, [currentPage, session]);
 
   return (
     <div
       className={`${roboto.className} w-full min-h-[90vh] flex items-start flex-col justify-start px-20 py-10`}
     >
       <h2 className="font-extrabold text-2xl">
-        <GreetingMessage username={session?.user?.name as string} />
+        <GreetingMessage username={session?.user?.name || "User"} />
       </h2>
       <div className="w-full h-[1px] bg-gray-300 my-2"></div>
       <div className="py-4 w-full flex justify-between">
@@ -124,87 +96,23 @@ export default function Page() {
           </Button>
         </div>
       </div>
-      <div className="w-full flex items-center justify-between py-4">
-        <div className="w-1/6 min-h-28 rounded-xl bg-slate-50 shadow-md text-black flex items-center justify-center flex-col">
-          <p className="font-semibold text-3xl">{enabledJobCount}</p>
-          <p className="text-base py-1">Enabled CronJobs</p>
-        </div>
-        <div className="w-1/6 h-28 rounded-xl bg-slate-50 shadow-md text-black flex items-center justify-center flex-col">
-          <p className="font-semibold text-3xl">{disabledJobCount}</p>
-          <p className="text-base py-1">Disabled CronJobs</p>
-        </div>
-        <div className="w-1/6 h-28 rounded-xl bg-slate-50 shadow-md text-black flex items-center justify-center flex-col">
-          <p className="font-semibold text-3xl">
-            {enabledJobCount - failedCount}
-          </p>
-          <p className="text-base py-1"> Successful CronJobs</p>
-        </div>
-        <div className="w-1/6 h-28 rounded-xl bg-slate-50 shadow-md text-black flex items-center justify-center flex-col">
-          <p className="font-semibold text-3xl">{failedCount}</p>
-          <p className="text-base py-1">Failed CronJobs</p>
-        </div>
-      </div>
+      <DashboardStats
+        enabledJobCount={enabledJobCount}
+        disabledJobCount={disabledJobCount}
+        failedCount={failedCount}
+      />
       <div className="w-full h-fit flex items-start justify-start flex-col py-10">
         <p className="font-medium text-sm"> Recent Events</p>
         <div className="w-full flex flex-col items-start justify-center my-3">
-          {events.map((event: any) => (
-            <div className="w-full flex items-center justify-between border rounded-xl py-5 px-5 pr-10 my-1">
-              <div className="flex items-center">
-                {event.status === "SUCCESS" ? (
-                  <Clock className="w-6 h-6 rounded-full bg-green-400 text-white border-none" />
-                ) : (
-                  <Clock className="w-6 h-6 rounded-full bg-red-400 text-white border-none" />
-                )}
-                <div className="flex flex-col items-start justify-center pl-4 text-sm">
-                  <p>{`Cronjob execution: ${event.status} (${event.status === "SUCCESS" ? "200 OK" : "500 NOT OK"} )`}</p>
-                  <p>{event.cronJobUrl}</p>
-                </div>
-              </div>
-              {isSameDay(new Date(), new Date(event.time)) ? (
-                <p className="text-sm">
-                  Executed Today at{" "}
-                  {new Date(event.time).toLocaleTimeString("en-US", {
-                    hour12: true,
-                  })}
-                </p>
-              ) : (
-                <p className="text-sm">Executed on {getDate(event.time)}</p>
-              )}
-            </div>
+          {events.map((event: any, i: number) => (
+            <EventCard key={i} event={event} />
           ))}
           {totalPages > 0 && (
-            <Pagination className="mt-10">
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious
-                    href="#"
-                    onClick={() =>
-                      handlePageChange(Math.max(currentPage - 1, 1))
-                    }
-                  />
-                </PaginationItem>
-                {[...Array(totalPages)].map((_, index) => (
-                  <PaginationItem key={index}>
-                    <PaginationLink
-                      href="#"
-                      isActive={currentPage === index + 1}
-                      onClick={() => handlePageChange(index + 1)}
-                    >
-                      {index + 1}
-                    </PaginationLink>
-                  </PaginationItem>
-                ))}
-                {/* {totalPages > 3 && <PaginationEllipsis />} */}
-                <PaginationItem>
-                  <PaginationNext
-                    href="#"
-                    onClick={() =>
-                      handlePageChange(Math.min(currentPage + 1, totalPages))
-                    }
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
+            <PaginationComponent
+              currentPage={currentPage}
+              totalPages={totalPages}
+              handlePageChange={handlePageChange}
+            />
           )}
         </div>
       </div>

@@ -39,7 +39,7 @@ export default function Faq() {
       </div>
       <Accordion type="single" collapsible className="w-4/6">
         {faqs.map((faq, i) => (
-          <AccordionItem value={`${i}`}>
+          <AccordionItem key={i} value={`${i}`}>
             <AccordionTrigger className="font-semibold text-xl">{faq.question}</AccordionTrigger>
             <AccordionContent className="text-lg font-medium">{faq.answer}</AccordionContent>
           </AccordionItem>

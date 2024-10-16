@@ -9,7 +9,7 @@ export const fetchCronJobs = async () => {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session || !session.user) {
+    if (!session?.user) {
       throw new Error("Not authenticated");
     }
     const customSession = session as CustomSession;
@@ -20,9 +20,13 @@ export const fetchCronJobs = async () => {
         createdAt: "desc",
       },
     });
+
+    if (!cronJobs) {
+      throw new Error("Error in fetching cronJobs");
+    }
     return cronJobs;
-  } catch (error) {
-    console.error("Error fetching cron jobs:", error);
+  } catch (err) {
+    console.error("Error fetching cron jobs:", err);
     throw new Error("Failed to fetch cron jobs");
   }
 };
@@ -31,16 +35,21 @@ export const fetchSingleCronjob = async (cronjobId: string) => {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session || !session.user) {
+    if (!session?.user) {
       throw new Error("Not authenticated");
     }
 
     const cronjob = await prisma.cronJob.findFirst({
       where: { id: cronjobId },
     });
+
+    if (!cronjob) {
+      throw new Error(`Cronjob with ID ${cronjobId} not found`);
+    }
+
     return cronjob;
-  } catch (error) {
-    console.error("Error fetching cron job:", error);
+  } catch (err) {
+    console.error(`Error fetching cron job with id ${cronjobId} :`, err);
     throw new Error("Failed to fetch cron job");
   }
 };
@@ -53,7 +62,7 @@ export const fetchCronjobWithEvents = async (
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session || !session.user) {
+    if (!session?.user) {
       throw new Error("Not authenticated");
     }
 
@@ -64,7 +73,7 @@ export const fetchCronjobWithEvents = async (
       },
     });
     if (!cronjob) {
-      throw new Error("Cronjob not found");
+      throw new Error(`Cronjob with id ${cronjobId} not found`);
     }
 
     const allEvents = cronjob?.previousEvents
@@ -82,8 +91,8 @@ export const fetchCronjobWithEvents = async (
       previousEvents: paginatedEvents,
       totalEvents,
     };
-  } catch (error) {
-    console.error("Error fetching cron job:", error);
+  } catch (err) {
+    console.error("Error fetching cron job:", err);
     throw new Error("Failed to fetch cron job");
   }
 };
@@ -113,31 +122,31 @@ export const fetchCronjobStats = async (userId: string) => {
       throw new Error("Not authenticated");
     }
 
-    const activeJobCount = await prisma.cronJob.count({
-      where: {
-        userId,
-        active: true,
-      },
+    const cronJobStats = await prisma.cronJob.groupBy({
+      by: ["active", "isFailed"],
+      where: { userId },
+      _count: true,
     });
 
-    const inActiveJobCount = await prisma.cronJob.count({
-      where: {
-        userId,
-        active: false,
-      },
-    });
+    let activeCount = 0;
+    let inActiveCount = 0;
+    let failedCount = 0;
 
-    const failedCronjobs = await prisma.cronJob.count({
-      where: {
-        userId,
-        isFailed: true,
-      },
+    cronJobStats.forEach((stat) => {
+      if (stat.active) {
+        activeCount += stat._count;
+      } else {
+        inActiveCount += stat._count;
+      }
+      if (stat.isFailed) {
+        failedCount += stat._count;
+      }
     });
 
     return {
-      activeCount: activeJobCount,
-      inActiveCount: inActiveJobCount,
-      failedCount: failedCronjobs,
+      activeCount,
+      inActiveCount,
+      failedCount,
     };
   } catch (err) {
     console.error("Error in fetching cron jobs stats : ", err);
@@ -210,6 +219,6 @@ export const fetchAllEvents = async (
     }
   } catch (err: any) {
     console.error("Error in fetching events : ", err);
-    throw new Error("Error in fetching events : ", err.messag);
+    throw new Error("Error in fetching events : ", err.message);
   }
 };

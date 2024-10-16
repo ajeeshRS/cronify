@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { Button } from "./ui/button";
+import { Button } from "../ui/button";
 import { usePathname, useRouter } from "next/navigation";
 import { ArrowLeft, LogOut, MoveLeft, User } from "lucide-react";
 import {
@@ -22,6 +22,11 @@ export default function Navbar() {
   const router = useRouter();
   const homePaths = ["/", "/dashboard"];
 
+  const handleSignout = async (e: any) => {
+    e.preventDefault();
+    await signOut({ redirect: false });
+    router.push("/");
+  };
   return (
     <nav
       className={`w-full h-[10vh] py-10 sticky top-0 z-50 bg-[#fff] flex items-center ${
@@ -89,7 +94,7 @@ export default function Navbar() {
             </DropdownMenuItem>
             <DropdownMenuItem
               className="font-medium text-base"
-              onClick={() => signOut()}
+              onClick={handleSignout}
             >
               <LogOut className="w-4 h-4 mr-1" /> Log out
             </DropdownMenuItem>

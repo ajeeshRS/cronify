@@ -22,6 +22,11 @@ import { useState } from "react";
 export default function Page() {
   const form = useForm<SignupSchemaType>({
     resolver: zodResolver(SignupSchema),
+    defaultValues: {
+      username: "",
+      email: "",
+      password: "",
+    },
   });
   const [loading, setLoading] = useState(false);
 
@@ -34,8 +39,6 @@ export default function Page() {
         throw new Error("Network response was not ok");
       }
       setLoading(false);
-      // Process response here
-      // console.log("Registration Successful", res);
       toast.success("Account created");
     } catch (error) {
       setLoading(false);

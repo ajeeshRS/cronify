@@ -24,6 +24,10 @@ export default function Page() {
   const router = useRouter();
   const form = useForm<SigninSchemaType>({
     resolver: zodResolver(SigninSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
   });
   const [loading, setLoading] = useState(false);
   const session = useSession();
@@ -52,7 +56,6 @@ export default function Page() {
         throw new Error("Network response was not ok");
       }
       setLoading(false);
-      // Process response here
       console.log("Login Successful", response);
       toast.success("Logged in");
     } catch (error: any) {
