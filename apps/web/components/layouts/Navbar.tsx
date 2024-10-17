@@ -77,7 +77,7 @@ export default function Navbar() {
           <Link href={"/login"}>Log in</Link>
         </Button>
       </div>
-      {session?.user && (
+      {session?.user && pathname !== "/profile" && (
         <DropdownMenu>
           <DropdownMenuTrigger className="focus:outline-none focus:border-none">
             <p className="rounded-full w-12 h-12 outline-none p-3 border-none flex items-center justify-center bg-black text-white">
@@ -89,7 +89,10 @@ export default function Navbar() {
               My Account
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="font-medium text-base">
+            <DropdownMenuItem
+              className="font-medium text-base"
+              onClick={() => router.push("/profile")}
+            >
               <User className="w-4 h-4 mr-1" /> Profile
             </DropdownMenuItem>
             <DropdownMenuItem

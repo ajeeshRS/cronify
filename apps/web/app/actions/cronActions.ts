@@ -222,3 +222,31 @@ export const fetchAllEvents = async (
     throw new Error("Error in fetching events : ", err.message);
   }
 };
+
+export const fetchUserInfo = async () => {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+      throw new Error("Not authenticated");
+    }
+
+    const customSession = session as CustomSession;
+
+    const user = await prisma.user.findUnique({
+      where: {
+        id: customSession.user.id,
+      },
+      select: {
+        username: true,
+        createdAt: true,
+        email: true,
+      },
+    });
+
+    return user;
+  } catch (err: any) {
+    console.error("Error in fetching user Info : ", err);
+    throw new Error("Couldn't fetch user : ", err.message);
+  }
+};

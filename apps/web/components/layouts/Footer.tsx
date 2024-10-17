@@ -4,11 +4,13 @@ import { usePathname } from "next/navigation";
 import { SocialIcon } from "react-social-icons";
 export default function Footer() {
   const pathname = usePathname();
+  const paths = ["/dashboard", "/profile"];
+  
   return (
     <footer
       id="footer"
       className={`${
-        pathname === "/dashboard" && "hidden"
+        paths.includes(pathname) && "hidden"
       } w-full relative bottom-0 h-[35vh] mt-20 flex flex-col items-center py-5 bg-[#DAF872] rounded-t-[350px]`}
     >
       <div className="w-full text-center">
