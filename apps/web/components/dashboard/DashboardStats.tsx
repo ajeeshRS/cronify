@@ -21,7 +21,7 @@ export default function DashboardStats({
       </div>
       <div className="w-1/6 h-28 rounded-xl bg-slate-50 shadow-md text-black flex items-center justify-center flex-col">
         <p className="font-semibold text-3xl">
-          {enabledJobCount - failedCount}
+          {enabledJobCount === 0 ? 0 : enabledJobCount - failedCount}
         </p>
         <p className="text-base py-1"> Successful CronJobs</p>
       </div>

@@ -364,6 +364,13 @@ export const updateCronjob = async (req: Request, res: Response) => {
               status: "FAILURE",
             },
           });
+          const user = await prisma.user.findUnique({
+            where: {
+              id: userId,
+            },
+          });
+
+          await sendServiceFailMail(user?.email as string, cronjob.title);
           console.error("error in executng cron job :", err);
         }
       });
