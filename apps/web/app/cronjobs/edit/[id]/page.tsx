@@ -66,9 +66,9 @@ export default function Page() {
   }
   return (
     <div
-      className={`${roboto.className} w-full h-[90vh] flex items-center flex-col justify-center px-20 py-10`}
+      className={`${roboto.className} w-full h-[90vh] flex items-center flex-col justify-center md:px-20 px-5 py-10`}
     >
-      <div className="w-3/6 border p-10 rounded-xl shadow-sm">
+      <div className="md:w-3/6 w-full border p-10 rounded-xl shadow-sm">
         <EditForm id={id} initialValue={initialValues} form={form} />
       </div>
     </div>

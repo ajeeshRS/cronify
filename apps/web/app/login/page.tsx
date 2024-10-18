@@ -65,8 +65,8 @@ export default function Page() {
     }
   }
   return (
-    <div className="w-full h-[90vh] flex items-start justify-center pt-10">
-      <div className="md:w-2/6 w-5/6 p-10 rounded-3xl flex flex-col items-center justify-center shadow-md">
+    <div className="w-full min-h-[80vh] flex items-center justify-center">
+      <div className="md:w-2/6 w-5/6 py-10 md:px-10 px-5 rounded-3xl flex flex-col items-center justify-center shadow-md">
         <h3 className="text-3xl font-bold py-4">Login</h3>
         <Form {...form}>
           <form
@@ -100,9 +100,9 @@ export default function Page() {
               )}
             />
             <p className="font-medium text-xs">Forgot password ?</p>
-            <p className="text-sm font-medium w-full text-center py-3">
+            <p className="text-sm font-medium w-full text-center py-5">
               Don&apos;t have an account ?{" "}
-              <span className="font-semibold text-black underline">
+              <span className="font-semibold text-black hover:underline">
                 <Link href={"/signup"}>Signup</Link>
               </span>
             </p>

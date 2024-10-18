@@ -10,24 +10,24 @@ export default function DashboardStats({
   failedCount,
 }: props) {
   return (
-    <div className="w-full flex items-center justify-between py-4">
-      <div className="w-1/6 min-h-28 rounded-xl bg-slate-50 shadow-md text-black flex items-center justify-center flex-col">
+    <div className="w-full grid md:grid-cols-4 grid-cols-2 gap-5 items-center justify-between py-4">
+      <div className=" w-full h-28 rounded-xl bg-slate-50 shadow-md text-black flex items-center justify-center flex-col">
         <p className="font-semibold text-3xl">{enabledJobCount}</p>
-        <p className="text-base py-1">Enabled CronJobs</p>
+        <p className="md:text-base text-sm py-1">Enabled CronJobs</p>
       </div>
-      <div className="w-1/6 h-28 rounded-xl bg-slate-50 shadow-md text-black flex items-center justify-center flex-col">
+      <div className="w-full h-28 rounded-xl bg-slate-50 shadow-md text-black flex items-center justify-center flex-col">
         <p className="font-semibold text-3xl">{disabledJobCount}</p>
-        <p className="text-base py-1">Disabled CronJobs</p>
+        <p className="md:text-base text-sm py-1">Disabled CronJobs</p>
       </div>
-      <div className="w-1/6 h-28 rounded-xl bg-slate-50 shadow-md text-black flex items-center justify-center flex-col">
+      <div className="w-full h-28 rounded-xl bg-slate-50 shadow-md text-black flex items-center justify-center flex-col">
         <p className="font-semibold text-3xl">
           {enabledJobCount === 0 ? 0 : enabledJobCount - failedCount}
         </p>
-        <p className="text-base py-1"> Successful CronJobs</p>
+        <p className="md:text-base text-sm py-1"> Successful CronJobs</p>
       </div>
-      <div className="w-1/6 h-28 rounded-xl bg-slate-50 shadow-md text-black flex items-center justify-center flex-col">
+      <div className="w-full h-28 rounded-xl bg-slate-50 shadow-md text-black flex items-center justify-center flex-col">
         <p className="font-semibold text-3xl">{failedCount}</p>
-        <p className="text-base py-1">Failed CronJobs</p>
+        <p className="md:text-base text-sm py-1">Failed CronJobs</p>
       </div>
     </div>
   );

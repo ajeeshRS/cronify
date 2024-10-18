@@ -105,26 +105,32 @@ export default function CronjobCard({ job, getCronJobs }: any) {
   return (
     <div
       key={job.id}
-      className="w-full flex items-center justify-between my-4 border p-5 rounded-lg"
+      className="w-full flex items-center justify-between my-4 border md:p-5 p-2 rounded-lg"
     >
-      <div className="flex items-center w-2/6">
-        <div className="flex flex-col items-start justify-center pl-4 text-sm">
+      <div className="flex items-center md:w-2/6 w-5/6">
+        <div className="flex flex-col items-start justify-center md:pl-4 pl-2 text-sm">
           <Link
             href={`/cronjobs/${job.id}`}
             className="text-lg hover:underline"
           >
             {job.title?.toUpperCase()}
           </Link>
+          <Link
+            href={job.url}
+            className="py-1 hover:underline w-5/6  flex items-center justify-start text-xs md:hidden text-wrap"
+          >
+            {job.url}
+          </Link>
         </div>
       </div>
       <Link
         href={job.url}
-        className="py-1 hover:underline w-2/6 flex items-center justify-start text-sm"
+        className="py-1 hover:underline w-2/6 md:flex items-center justify-start text-sm  hidden"
       >
         {job.url}
       </Link>
 
-      <p className="w-2/6 flex items-center justify-center text-sm">
+      <p className="w-2/6 md:flex hidden items-center justify-center text-sm">
         {job.active ? "Enabled" : "Disabled"}
       </p>
       <DropdownMenu>

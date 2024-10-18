@@ -7,6 +7,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { usePathname } from "next/navigation";
 
 interface props {
   currentPage: number;
@@ -20,8 +21,9 @@ export default function PaginationComponent({
   handlePageChange,
 }: props) {
  
+  const pathname = usePathname()
   return (
-    <Pagination className="mt-10">
+    <Pagination className="mt-10 md:px-0 px-5">
       <PaginationContent>
         <PaginationItem>
           <PaginationPrevious
@@ -40,7 +42,7 @@ export default function PaginationComponent({
             </PaginationLink>
           </PaginationItem>
         ))}
-        {totalPages > 3 && <PaginationEllipsis />}
+        {totalPages > 3 && pathname!== "/dashboard" &&  <PaginationEllipsis />}
         <PaginationItem>
           <PaginationNext
             href="#"

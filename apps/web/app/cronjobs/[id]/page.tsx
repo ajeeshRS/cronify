@@ -36,7 +36,7 @@ export default function Page() {
   const { data: session, status } = useSession();
 
   const customSession = session as CustomSession;
-  const ITEMS_PER_PAGE = 4;
+  const ITEMS_PER_PAGE = 20;
 
   const totalPages = Math.ceil(cronjob.totalEvents / ITEMS_PER_PAGE);
   const currentPage = parseInt(searchParams.get("page") ?? "1");
@@ -120,27 +120,16 @@ export default function Page() {
 
   return (
     <div
-      className={`${roboto.className} w-full min-h-[90vh] flex items-center flex-col justify-center px-20 py-10`}
+      className={`${roboto.className} w-full min-h-[90vh] flex items-center flex-col justify-center md:px-20 px-2 py-10`}
     >
-      <div className="w-full rounded-2xl h-full border p-10 shadow-sm">
+      <div className="w-full rounded-2xl h-full border md:p-10 p-4 shadow-sm">
         <div className="w-full flex items-center justify-between">
           <h3 className="font-bold">{cronjob.title?.toUpperCase()}</h3>
           <div className="flex items-center">
-            <p className="text-white p-2 rounded-2xl text-sm mr-6 bg-black">
-              Every {cronjob.cronSchedule} minutes
-            </p>
-            {cronjob.active === true ? (
-              <p className="mr-3 bg-[#DAF872] p-2 text-black text-sm rounded-2xl">
-                Active
-              </p>
-            ) : (
-              <p className="mr-3 bg-red-500 p-2 text-white text-sm rounded-2xl">
-                InActive
-              </p>
-            )}
             {cronjob.active === true ? (
               <Button
                 className="rounded-2xl"
+                size={"sm"}
                 onClick={() => disableCronjob(cronjob.id)}
               >
                 Disable
@@ -155,7 +144,21 @@ export default function Page() {
             )}
           </div>
         </div>
-        <p className="w-full text-start py-4">{cronjob.url}</p>
+        <div className="flex items-center">
+          <p className="text-white p-2 rounded-2xl md:text-sm text-xs md:mr-6 mr-1 bg-black">
+            Every {cronjob.cronSchedule} minutes
+          </p>
+          {cronjob.active === true ? (
+            <p className="mr-3 bg-[#DAF872] p-2 text-black md:text-sm text-xs rounded-2xl">
+              Active
+            </p>
+          ) : (
+            <p className="mr-3 bg-red-500 p-2 text-white md:text-sm text-xs rounded-2xl">
+              InActive
+            </p>
+          )}
+        </div>
+        <p className="md:w-full w-5/6 md:text-base text-sm text-start py-4">{cronjob.url}</p>
         <div className="w-full flex items-start justify-start flex-col py-10">
           <p className="font-medium text-sm"> Next Executions</p>
           <div className="w-full flex flex-col items-start justify-center mt-3">

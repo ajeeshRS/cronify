@@ -5,11 +5,17 @@ import { LoaderIcon, LogOut, Pen, Trash } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { fetchUserInfo } from "../actions/cronActions";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 export default function Page() {
   const session = useSession();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
+
+  if (session.status === "loading" ||!session.data) {
+    router.push("/login");
+  }
 
   const getUser = useCallback(async () => {
     try {
@@ -39,16 +45,16 @@ export default function Page() {
 
   return (
     <div
-      className={`${roboto.className} w-full min-h-[90vh] flex items-start flex-col justify-start px-20 py-10`}
+      className={`${roboto.className} w-full min-h-[90vh] flex items-start flex-col justify-start md:px-20 px-5 py-10`}
     >
       <div className="w-full h-full flex flex-col items-start justify-start">
         <h3 className="font-bold text-2xl">Profile</h3>
-        <div className="w-full min-h-[50vh] border shadow-md rounded-xl p-10 my-5">
+        <div className="w-full md:min-h-[50vh] min-h-[40vh] border shadow-md rounded-xl md:p-10 p-5 my-5">
           <div className="flex items-center">
-            <p className="rounded-full w-20 h-20 outline-none p-3 border-none flex items-center justify-center bg-black text-white">
+            <p className="rounded-full md:w-20 md:h-20 w-14 h-14 outline-none p-4 border-none flex items-center justify-center bg-black text-white">
               {user.username.charAt(0).toUpperCase()}
             </p>
-            <div className="flex  w-full items-center justify-between">
+            <div className="flex md:w-full w-5/6 items-center justify-between">
               <div className="flex flex-col items-start mx-4">
                 <p className="text-lg">{user.username}</p>
               </div>
@@ -73,7 +79,7 @@ export default function Page() {
               </p>
             </div>
           </div>
-          <div className="w-full flex items-center justify-end">
+          <div className="w-full flex items-center md:justify-end justify-center md:py-0 py-10">
             <Button variant={"destructive"} className="mr-3">
               <Trash className="mr-2 w-4 h-4" /> Delete Account
             </Button>

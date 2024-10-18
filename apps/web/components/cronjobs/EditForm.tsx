@@ -105,7 +105,7 @@ export default function EditForm({ id, initialValue, form }: any) {
             schedule?: string | undefined;
           }) => handleSubmit(data)
         )}
-        className="md:w-full w-5/6"
+        className="w-full"
       >
         <FormField
           control={form.control}
@@ -166,7 +166,7 @@ export default function EditForm({ id, initialValue, form }: any) {
         />
         <div className="w-full flex items-center justify-end">
           <Button
-            className="w-1/6 mt-3 rounded-3xl mx-1"
+            className="md:w-1/6 w-2/6 mt-3 rounded-3xl mx-1"
             onClick={form.handleSubmit((data: { url: string | undefined }) =>
               handleTestRun(data.url)
             )}
@@ -174,7 +174,7 @@ export default function EditForm({ id, initialValue, form }: any) {
             {testLoading ? "Testing..." : "Test run"}
           </Button>
           <Button
-            className="w-1/6 mt-3 rounded-3xl"
+            className="md:w-1/6 w-2/6 mt-3 rounded-3xl"
             disabled={!isValuesChanged}
             type="submit"
           >

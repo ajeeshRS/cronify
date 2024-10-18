@@ -85,14 +85,14 @@ export default function Page() {
 
   return (
     <div
-      className={`${roboto.className} w-full h-[90vh] flex items-center flex-col justify-center px-20 py-10`}
+      className={`${roboto.className} w-full h-[90vh] flex items-center flex-col justify-center md:px-20 px-5 py-10`}
     >
-      <div className="w-3/6 border p-10 rounded-xl shadow-sm">
+      <div className="md:w-3/6 w-full border p-10 rounded-xl shadow-sm">
         <Form {...form}>
           <h3 className="w-full text-center font-bold text-2xl">Add CronJob</h3>
           <form
             onSubmit={form.handleSubmit((data) => handleSubmit(data))}
-            className="md:w-full w-5/6"
+            className="w-full"
           >
             <FormField
               control={form.control}
@@ -159,12 +159,12 @@ export default function Page() {
             />
             <div className="w-full flex items-center justify-end">
               <Button
-                className="w-1/6 mt-3 rounded-3xl mx-1"
+                className="md:w-1/6 w-2/6 mt-3 rounded-3xl mx-1"
                 onClick={form.handleSubmit((data) => handleTestRun(data.url))}
               >
                 {testLoading ? "Testing..." : "Test run"}
               </Button>
-              <Button className="w-1/6 mt-3 rounded-3xl" type="submit">
+              <Button className="md:w-1/6 w-2/6 mt-3 rounded-3xl" type="submit">
                 {loading ? "Adding..." : "Add"}
               </Button>
             </div>

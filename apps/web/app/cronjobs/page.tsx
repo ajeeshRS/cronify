@@ -47,7 +47,7 @@ export default function Page() {
 
   return (
     <div
-      className={`${roboto.className} w-full h-[90vh] flex items-start flex-col justify-start px-20 py-10`}
+      className={`${roboto.className} w-full h-[90vh] flex items-start flex-col justify-start md:px-20 px-5 py-10`}
     >
       <div className="py-4 w-full flex justify-between">
         <h3 className="font-semibold text-xl">Cronjobs</h3>

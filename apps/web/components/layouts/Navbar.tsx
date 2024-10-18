@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { signOut, useSession } from "next-auth/react";
+import MobileNavbar from "../mobileNavbar";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -31,7 +32,7 @@ export default function Navbar() {
     <nav
       className={`w-full h-[10vh] py-10 sticky top-0 z-50 bg-[#fff] flex items-center ${
         pathname === "/login" ? "justify-start" : "justify-between"
-      } px-20`}
+      } md:px-20 px-5`}
     >
       <div className="flex items-center">
         {!homePaths.includes(pathname) && (
@@ -45,9 +46,7 @@ export default function Navbar() {
       </div>
       <div
         className={`${
-          session?.user || ["/login", "/signup"].includes(pathname)
-            ? "hidden"
-            : "flex items-center"
+          pathname !== "/" ? "hidden" : "md:flex hidden items-center"
         } `}
       >
         <ul className={`flex items-center text-[#1B201C] mx-4`}>
@@ -70,16 +69,20 @@ export default function Navbar() {
             <MoveLeft className="ml-1 w-5 h-5 opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all duration-200 ease-in-out " />
           </li>
         </ul>
-        <Button
-          size={"lg"}
-          className={`bg-[#DAF872] font-medium rounded-full text-xl py-5 px-6 shadow-none text-inherit hover:bg-white border-[#DAF872] border hover:border-[#000] hover:text-[#000]`}
-        >
-          <Link href={"/login"}>Log in</Link>
-        </Button>
+        {!session?.user && (
+          <Button
+            size={"lg"}
+            className={`bg-[#DAF872] font-medium rounded-full text-xl py-5 px-6 shadow-none text-inherit hover:bg-white border-[#DAF872] border hover:border-[#000] hover:text-[#000]`}
+          >
+            <Link href={"/login"}>Log in</Link>
+          </Button>
+        )}
       </div>
       {session?.user && pathname !== "/profile" && (
         <DropdownMenu>
-          <DropdownMenuTrigger className="focus:outline-none focus:border-none">
+          <DropdownMenuTrigger
+            className={`focus:outline-none focus:border-none md:block ${pathname === "/" && "hidden"} `}
+          >
             <p className="rounded-full w-12 h-12 outline-none p-3 border-none flex items-center justify-center bg-black text-white">
               {session.user.name?.charAt(0).toUpperCase()}
             </p>
@@ -103,6 +106,11 @@ export default function Navbar() {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+      )}
+      {pathname === "/" && (
+        <div className="md:hidden block">
+          <MobileNavbar />
+        </div>
       )}
     </nav>
   );
