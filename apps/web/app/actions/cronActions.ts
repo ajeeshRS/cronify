@@ -288,3 +288,29 @@ export const deleteUserAccount = async () => {
     throw new Error("Unable to delete user account. Please try again later.");
   }
 };
+
+export const updateUsername = async (username: string) => {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+      throw new Error("Not authenticated");
+    }
+
+    const customSession = session as CustomSession;
+
+    await prisma.user.update({
+      where: {
+        id: customSession.user.id,
+      },
+      data: {
+        username,
+      },
+    });
+    
+    console.log("Username updated!");
+  } catch (err) {
+    console.error("Error updating username : ", err);
+    throw new Error("Unable to update username");
+  }
+};

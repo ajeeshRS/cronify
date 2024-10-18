@@ -17,15 +17,17 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import EditUsernameDialog from "@/components/profile/EditUsernameDialog";
 
 export default function Page() {
-  const session = useSession();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [userInput, setUserInput] = useState("");
   const [confirmed, setConfirmed] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+
+  const session = useSession();
   const router = useRouter();
 
   if (session.status === "loading" || !session.data) {
@@ -52,7 +54,7 @@ export default function Page() {
       setDeleteLoading(true);
       await deleteUserAccount();
       toast.success("Account deleted !");
-      await signOut()
+      await signOut();
       router.push("/");
     } catch (err) {
       console.error(`Error in deleting user Acccount ${user.email} :`, err);
@@ -98,13 +100,7 @@ export default function Page() {
                   {user.username.toUpperCase()}
                 </p>
               </div>
-              <Button
-                variant={"outline"}
-                size={"icon"}
-                className="bg-[#DAF872]"
-              >
-                <Pen className="w-4 h-4" />
-              </Button>
+              <EditUsernameDialog user={user} getUser={getUser} />
             </div>
           </div>
           <div className="mt-10">
@@ -135,7 +131,7 @@ export default function Page() {
                 <DialogContent>
                   <DialogHeader className="font-sans">
                     <DialogTitle className="font-normal py-3">
-                      To confirm, type{" "}
+                      To confirm, type
                       <span className="font-bold">{user.username}</span> in the
                       box below
                     </DialogTitle>
@@ -153,7 +149,7 @@ export default function Page() {
                         handleDeleteAccount();
                       }}
                     >
-                      Delete this account
+                      {deleteLoading ? "Deleting.." : "Delete this account"}
                     </Button>
                   </DialogFooter>
                 </DialogContent>
