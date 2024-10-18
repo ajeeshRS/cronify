@@ -1,31 +1,18 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { roboto } from "../fonts/font";
-import { LoaderIcon, LogOut, Pen, Trash } from "lucide-react";
+import { LoaderIcon, LogOut } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { deleteUserAccount, fetchUserInfo } from "../actions/cronActions";
+import { fetchUserInfo } from "../actions/cronActions";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
+
 import EditUsernameDialog from "@/components/profile/EditUsernameDialog";
+import DeleteAccountDialog from "@/components/profile/DeleteAccountDialog";
 
 export default function Page() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(false);
-  const [deleteLoading, setDeleteLoading] = useState(false);
-  const [userInput, setUserInput] = useState("");
-  const [confirmed, setConfirmed] = useState(false);
-  const [dialogOpen, setDialogOpen] = useState(false);
 
   const session = useSession();
   const router = useRouter();
@@ -45,23 +32,6 @@ export default function Page() {
       setLoading(false);
     }
   }, []);
-
-  const handleDeleteAccount = async () => {
-    try {
-      if (user.username !== userInput) {
-        return toast.error("Wrong input!");
-      }
-      setDeleteLoading(true);
-      await deleteUserAccount();
-      toast.success("Account deleted !");
-      await signOut();
-      router.push("/");
-    } catch (err) {
-      console.error(`Error in deleting user Acccount ${user.email} :`, err);
-    } finally {
-      setDeleteLoading(false);
-    }
-  };
 
   const handleSignout = async (e: any) => {
     e.preventDefault();
@@ -116,66 +86,7 @@ export default function Page() {
             </div>
           </div>
           <div className="w-full flex items-center md:justify-end justify-center md:py-0 py-10">
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-              <DialogTrigger
-                className="flex items-center"
-                onClick={(e) => {
-                  e.stopPropagation();
-                }}
-              >
-                <Button variant={"destructive"} className="mr-3">
-                  <Trash className="mr-2 w-4 h-4" /> Delete Account
-                </Button>
-              </DialogTrigger>
-              {confirmed ? (
-                <DialogContent>
-                  <DialogHeader className="font-sans">
-                    <DialogTitle className="font-normal py-3">
-                      To confirm, type
-                      <span className="font-bold">{user.username}</span> in the
-                      box below
-                    </DialogTitle>
-                    <Input
-                      type="text"
-                      value={userInput}
-                      onChange={(e) => setUserInput(e.target.value)}
-                    />
-                  </DialogHeader>
-                  <DialogFooter>
-                    <Button
-                      variant={"destructive"}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        handleDeleteAccount();
-                      }}
-                    >
-                      {deleteLoading ? "Deleting.." : "Delete this account"}
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              ) : (
-                <DialogContent>
-                  <DialogHeader className="font-sans">
-                    <DialogTitle>Are you sure?</DialogTitle>
-                    <DialogDescription className="py-2">
-                      This action cannot be undone. This will permanently delete
-                      your account and related cronjob datas from our servers.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <DialogFooter>
-                    <Button
-                      variant={"destructive"}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setConfirmed(true);
-                      }}
-                    >
-                      Continue
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              )}
-            </Dialog>
+            <DeleteAccountDialog user={user} />
             <Button onClick={handleSignout}>
               <LogOut className="mr-2 w-4 h-4" /> Logout
             </Button>
