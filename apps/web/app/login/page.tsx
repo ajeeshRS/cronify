@@ -45,7 +45,13 @@ export default function Page() {
         redirect: false,
       });
 
-      // console.log({ response });
+      if (response.error === "User not found") {
+        throw new Error("User not found");
+      }
+
+      if (response.error === "Invalid credentials") {
+        throw new Error("Invalid credentials");
+      }
 
       if (!response?.error) {
         router.push("/");
@@ -53,14 +59,15 @@ export default function Page() {
       }
 
       if (!response.ok) {
-        throw new Error("Network response was not ok");
+        throw new Error("Login failed");
       }
+
       setLoading(false);
       console.log("Login Successful", response);
       toast.success("Logged in");
     } catch (error: any) {
       console.error("Login Failed:", error);
-      toast.error("Login Failed");
+      toast.error(error.message);
       setLoading(false);
     }
   }

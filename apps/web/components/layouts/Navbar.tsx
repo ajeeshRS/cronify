@@ -14,6 +14,7 @@ import {
 
 import { signOut, useSession } from "next-auth/react";
 import MobileNavbar from "../mobileNavbar";
+import { toast } from "sonner";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -26,6 +27,7 @@ export default function Navbar() {
   const handleSignout = async (e: any) => {
     e.preventDefault();
     await signOut({ redirect: false });
+    toast.success("Logged out!")
     router.push("/");
   };
   return (

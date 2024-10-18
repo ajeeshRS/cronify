@@ -12,7 +12,7 @@ export default function Home() {
       id="#"
       className="w-full h-fit  bg-inherit flex flex-col justify-center items-center"
     >
-      <div className="w-full h-[90vh] flex flex-col items-center justify-start pt-24 md:p-20 p-10">
+      <div className="w-full h-[90vh] flex flex-col items-center justify-start pt-24 mt-10 md:p-20 p-10">
         <h2 className="font-extrabold md:text-8xl text-6xl pb-3 text-[#1B201C] text-center px-5">
           Automate Your Uptime, Effortlessly!{" "}
         </h2>

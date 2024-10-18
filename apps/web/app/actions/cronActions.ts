@@ -250,3 +250,41 @@ export const fetchUserInfo = async () => {
     throw new Error("Couldn't fetch user : ", err.message);
   }
 };
+
+export const deleteUserAccount = async () => {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+      throw new Error("Not authenticated");
+    }
+    const { id } = session.user as CustomSession["user"];
+
+    const result = await prisma.$transaction([
+      prisma.event.deleteMany({
+        where: {
+          cronJob: {
+            userId: id,
+          },
+        },
+      }),
+
+      prisma.cronJob.deleteMany({
+        where: {
+          userId: id,
+        },
+      }),
+
+      prisma.user.delete({
+        where: {
+          id,
+        },
+      }),
+    ]);
+
+    console.log("User account and related data deleted successfully");
+  } catch (err) {
+    console.error("Error deleting user account : ", err);
+    throw new Error("Unable to delete user account. Please try again later.");
+  }
+};
