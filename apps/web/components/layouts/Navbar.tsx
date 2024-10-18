@@ -17,7 +17,7 @@ import MobileNavbar from "../mobileNavbar";
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
 
   // console.log(session?.user)
   const router = useRouter();
@@ -78,7 +78,7 @@ export default function Navbar() {
           </Button>
         )}
       </div>
-      {session?.user && pathname !== "/profile" && (
+      {status !== "loading" && session?.user && pathname !== "/profile" && (
         <DropdownMenu>
           <DropdownMenuTrigger
             className={`focus:outline-none focus:border-none md:block ${pathname === "/" && "hidden"} `}
