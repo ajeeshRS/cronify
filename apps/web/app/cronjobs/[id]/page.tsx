@@ -4,18 +4,9 @@ import {
   fetchNextExectutions,
 } from "@/app/actions/cronActions";
 import { roboto } from "@/app/fonts/font";
-import { Clock, LoaderIcon } from "lucide-react";
+import { LoaderIcon } from "lucide-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { CustomSession } from "@/lib/auth";
@@ -23,12 +14,20 @@ import { API } from "@/app/config/axios";
 import { toast } from "sonner";
 import CronEventCard from "@/components/cronjobs/CronEventCard";
 import PaginationComponent from "@/components/PaginationComponent";
+import {
+  CronJobState,
+  initialCronJobState,
+  NextExecutionType,
+  PreviousEventType,
+} from "@/types/cronjob.types";
 
 export default function Page() {
   const [fetching, setFetching] = useState(false);
-  const [cronjob, setCronjob] = useState<any>({});
-  const [previousEvents, setPreviousEvents] = useState<any>([]);
-  const [nextEvents, setNextEvents] = useState<any>([]);
+  const [cronjob, setCronjob] = useState<CronJobState>(initialCronJobState);
+  const [previousEvents, setPreviousEvents] = useState<PreviousEventType[]>([]);
+  const [nextEvents, setNextEvents] = useState<NextExecutionType[] | undefined>(
+    []
+  );
   const params = useParams();
   const id = params.id as string;
   const searchParams = useSearchParams();
@@ -59,7 +58,7 @@ export default function Page() {
           id: toastId,
         });
         getCronjob();
-      } catch (err) {
+      } catch (_err) {
         toast.error("Enabling failed", {
           id: toastId,
         });
@@ -80,7 +79,7 @@ export default function Page() {
           id: toastId,
         });
         getCronjob();
-      } catch (err) {
+      } catch (_err) {
         toast.error("Disabling failed", {
           id: toastId,
         });
@@ -90,19 +89,25 @@ export default function Page() {
   };
 
   const getCronjob = async () => {
-    setFetching(true);
-    const job = await fetchCronjobWithEvents(id, currentPage, ITEMS_PER_PAGE);
-    const nxtExecutions = await fetchNextExectutions(id);
-    setFetching(false);
-    console.log(job);
-    setNextEvents(nxtExecutions);
-    setCronjob(job);
-    if (job) {
-      const prevEvents = job.previousEvents.filter(
-        (event) => event.status !== "PENDING"
-      );
-      console.log("preveve:", prevEvents);
-      setPreviousEvents(prevEvents);
+    try {
+      setFetching(true);
+      const job = await fetchCronjobWithEvents(id, currentPage, ITEMS_PER_PAGE);
+      const nxtExecutions = await fetchNextExectutions(id);
+      setNextEvents(nxtExecutions);
+      // console.log(job);
+      setCronjob(job);
+      if (job) {
+        const prevEvents = job.previousEvents.filter(
+          (event) => event.status !== "PENDING"
+        );
+        // console.log("preveve:", prevEvents);
+        setPreviousEvents(prevEvents);
+      }
+    } catch (err: unknown) {
+      const error = err as Error;
+      console.error("Error fetching cronjobs : ", error.message);
+    } finally {
+      setFetching(false);
     }
   };
 
@@ -158,11 +163,13 @@ export default function Page() {
             </p>
           )}
         </div>
-        <p className="md:w-full w-5/6 md:text-base text-sm text-start py-4">{cronjob.url}</p>
+        <p className="md:w-full w-5/6 md:text-base text-sm text-start py-4">
+          {cronjob.url}
+        </p>
         <div className="w-full flex items-start justify-start flex-col py-10">
           <p className="font-medium text-sm"> Next Executions</p>
           <div className="w-full flex flex-col items-start justify-center mt-3">
-            {nextEvents.length > 0 ? (
+            {nextEvents && nextEvents.length > 0 ? (
               nextEvents.map((event: any, i: number) => (
                 <CronEventCard key={i} event={event} />
               ))

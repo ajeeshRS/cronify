@@ -1,5 +1,7 @@
 "use server";
 import { authOptions, CustomSession } from "@/lib/auth";
+import { CronJobStatus, NextExecutionType } from "@/types/cronjob.types";
+import { UserInfo } from "@/types/user.types";
 import { PrismaClient } from "@prisma/client";
 import { getServerSession } from "next-auth";
 
@@ -97,7 +99,9 @@ export const fetchCronjobWithEvents = async (
   }
 };
 
-export const fetchNextExectutions = async (cronJobId: string) => {
+export const fetchNextExectutions = async (
+  cronJobId: string
+): Promise<NextExecutionType[] | undefined> => {
   try {
     const allEvents = await prisma.event.findMany({
       where: {
@@ -114,7 +118,9 @@ export const fetchNextExectutions = async (cronJobId: string) => {
   }
 };
 
-export const fetchCronjobStats = async (userId: string) => {
+export const fetchCronjobStats = async (
+  userId: string
+): Promise<CronJobStatus> => {
   try {
     const session = await getServerSession(authOptions);
 
@@ -149,7 +155,7 @@ export const fetchCronjobStats = async (userId: string) => {
       failedCount,
     };
   } catch (err) {
-    console.error("Error in fetching cron jobs stats : ", err);
+    console.error("Error fetching cron jobs stats : ", err);
     throw new Error("Failed to get cronjobs stats");
   }
 };
@@ -223,7 +229,7 @@ export const fetchAllEvents = async (
   }
 };
 
-export const fetchUserInfo = async () => {
+export const fetchUserInfo = async (): Promise<UserInfo | null> => {
   try {
     const session = await getServerSession(authOptions);
 
@@ -244,10 +250,14 @@ export const fetchUserInfo = async () => {
       },
     });
 
+    if (!user) {
+      throw new Error("User not found");
+    }
+
     return user;
   } catch (err: any) {
-    console.error("Error in fetching user Info : ", err);
-    throw new Error("Couldn't fetch user : ", err.message);
+    console.error("Error fetching user Info : ", err);
+    throw new Error("Unable to retrieve user info");
   }
 };
 
@@ -259,6 +269,16 @@ export const deleteUserAccount = async () => {
       throw new Error("Not authenticated");
     }
     const { id } = session.user as CustomSession["user"];
+
+    const ExistingUser = await prisma.user.findUnique({
+      where: {
+        id,
+      },
+    });
+
+    if (!ExistingUser) {
+      throw new Error("User not found");
+    }
 
     const result = await prisma.$transaction([
       prisma.event.deleteMany({
@@ -299,6 +319,16 @@ export const updateUsername = async (username: string) => {
 
     const customSession = session as CustomSession;
 
+    const existingUser = await prisma.user.findUnique({
+      where: {
+        id: customSession.user.id,
+      },
+    });
+
+    if (!existingUser) {
+      throw new Error("User not found");
+    }
+
     await prisma.user.update({
       where: {
         id: customSession.user.id,
@@ -307,7 +337,7 @@ export const updateUsername = async (username: string) => {
         username,
       },
     });
-    
+
     console.log("Username updated!");
   } catch (err) {
     console.error("Error updating username : ", err);

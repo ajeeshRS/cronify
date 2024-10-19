@@ -30,12 +30,19 @@ export default function DeleteAccountDialog({ user }: any) {
         return toast.error("Wrong input!");
       }
       setDeleteLoading(true);
+      
       await deleteUserAccount();
       toast.success("Account deleted !");
+
       await signOut();
       router.push("/");
     } catch (err) {
-      console.error(`Error in deleting user Acccount ${user.email} :`, err);
+      const error = err as Error;
+      toast.error("An error occured while deleting account. Please try again");
+      console.error(
+        `Error in deleting user Acccount ${user.email} :`,
+        error.message
+      );
     } finally {
       setDeleteLoading(false);
     }

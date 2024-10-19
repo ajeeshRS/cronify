@@ -11,13 +11,14 @@ import { fetchAllEvents, fetchCronjobStats } from "../actions/cronActions";
 import DashboardStats from "@/components/dashboard/DashboardStats";
 import EventCard from "@/components/dashboard/EventCard";
 import PaginationComponent from "@/components/PaginationComponent";
+import { EventStateType } from "@/types/cronjob.types";
 
 export default function Page() {
   const router = useRouter();
   const [enabledJobCount, setEnabledJobCount] = useState(0);
   const [disabledJobCount, setDisabledJobCount] = useState(0);
   const [failedCount, setFailedCount] = useState(0);
-  const [events, setEvents] = useState<any>([]);
+  const [events, setEvents] = useState<EventStateType[]>([]);
   const [totalEvents, setTotalEvents] = useState(0);
   const searchParams = useSearchParams();
 
@@ -44,8 +45,9 @@ export default function Page() {
       setEnabledJobCount(result.activeCount);
       setDisabledJobCount(result.inActiveCount);
       setFailedCount(result.failedCount);
-    } catch (err) {
-      console.log("Error in getting cronjob Stats : ", err);
+    } catch (err:unknown) {
+      const error = err as Error
+      console.log("Error in getting cronjob Stats : ", error.message);
     }
   };
 
@@ -65,7 +67,7 @@ export default function Page() {
 
   useEffect(() => {
     getCronjobStats();
-  }, []);
+  }, [session]);
 
   useEffect(() => {
     getEvents();

@@ -3,26 +3,11 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { compare } from "bcryptjs";
 import { NextAuthOptions } from "next-auth";
 import { PrismaClient } from "@prisma/client";
+import { CustomSessionUser } from "@/types/user.types";
 const prisma = new PrismaClient();
 
-// export interface session extends Session {
-//   user: {
-//     id: string;
-//     jwtToken: string;
-//     role: string;
-//     email: string;
-//     name: string;
-//   };
-// }
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-}
-
 export interface CustomSession extends DefaultSession {
-  user: User;
+  user: CustomSessionUser;
 }
 
 export const authOptions = {

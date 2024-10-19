@@ -16,7 +16,7 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
-import { signIn, useSession } from "next-auth/react";
+import { signIn, useSession, SignInResponse } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useState } from "react";
@@ -36,20 +36,21 @@ export default function Page() {
   }
 
   async function onSubmit(values: SigninSchemaType) {
-    const { email, password } = values;
-    setLoading(true);
     try {
-      const response: any = await signIn("credentials", {
+      const { email, password } = values;
+      
+      setLoading(true);
+      const response: SignInResponse | undefined = await signIn("credentials", {
         email,
         password,
         redirect: false,
       });
 
-      if (response.error === "User not found") {
+      if (response?.error === "User not found") {
         throw new Error("User not found");
       }
 
-      if (response.error === "Invalid credentials") {
+      if (response?.error === "Invalid credentials") {
         throw new Error("Invalid credentials");
       }
 
@@ -58,16 +59,17 @@ export default function Page() {
         router.refresh();
       }
 
-      if (!response.ok) {
+      if (!response?.ok) {
         throw new Error("Login failed");
       }
 
-      setLoading(false);
       console.log("Login Successful", response);
       toast.success("Logged in");
-    } catch (error: any) {
-      console.error("Login Failed:", error);
+    } catch (err: unknown) {
+      const error = err as Error;
+      console.error("Login Failed:", error.message);
       toast.error(error.message);
+    } finally {
       setLoading(false);
     }
   }

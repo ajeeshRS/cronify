@@ -16,10 +16,14 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { toast } from "sonner";
 import { useState } from "react";
+import { Msg } from "@/types/common";
+
 export default function Page() {
+  const [loading, setLoading] = useState(false);
+
   const form = useForm<SignupSchemaType>({
     resolver: zodResolver(SignupSchema),
     defaultValues: {
@@ -28,22 +32,27 @@ export default function Page() {
       password: "",
     },
   });
-  const [loading, setLoading] = useState(false);
 
   async function onSubmit(values: SignupSchemaType) {
     try {
       setLoading(true);
       const res = await axios.post("/api/auth/signup", values);
 
-      if (!res) {
-        throw new Error("Network response was not ok");
-      }
-      setLoading(false);
+      toast.success(res.data.message);
       toast.success("Account created");
-    } catch (error) {
+      form.reset();
+    } catch (err: unknown) {
+      const error = err as AxiosError<Msg>;
+
+      if (error.response?.status === 409) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error("Couldn't signup");
+      }
+
+      console.error("Signup Failed:", error.response?.data.message);
+    } finally {
       setLoading(false);
-      console.error("Registration Failed:", error);
-      toast.error("Couldn't signup");
     }
   }
   return (

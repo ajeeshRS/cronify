@@ -8,11 +8,12 @@ import { useSession } from "next-auth/react";
 import { fetchCronJobs } from "../actions/cronActions";
 import { CustomSession } from "@/lib/auth";
 import CronjobCard from "@/components/cronjobs/CronjobCard";
+import { CronJobOnly } from "@/types/cronjob.types";
 
 export default function Page() {
   const router = useRouter();
   const { data: session, status } = useSession();
-  const [cronjobs, setCronjobs] = useState<any[]>([]);
+  const [cronjobs, setCronjobs] = useState<CronJobOnly[]>([]);
   const [loading, setLoading] = useState(false);
 
   const customSession = session as CustomSession;
@@ -24,8 +25,9 @@ export default function Page() {
         const data = await fetchCronJobs();
         setCronjobs(data);
         setLoading(false);
-      } catch (error) {
-        console.error("Error fetching cron jobs:", error);
+      } catch (err: unknown) {
+        const error = err as Error;
+        console.error("Error fetching cron jobs:", error.message);
         setLoading(false);
       } finally {
         setLoading(false);

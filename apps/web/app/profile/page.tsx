@@ -9,9 +9,10 @@ import { useRouter } from "next/navigation";
 
 import EditUsernameDialog from "@/components/profile/EditUsernameDialog";
 import DeleteAccountDialog from "@/components/profile/DeleteAccountDialog";
+import { UserInfo } from "@/types/user.types";
 
 export default function Page() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<UserInfo | null>(null);
   const [loading, setLoading] = useState(false);
 
   const session = useSession();

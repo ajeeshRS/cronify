@@ -29,6 +29,8 @@ import {
 } from "@/lib/validators/cronjob.validator";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { AxiosError, AxiosResponse } from "axios";
+import { Msg } from "@/types/common";
 
 export default function Page() {
   const router = useRouter();
@@ -54,32 +56,34 @@ export default function Page() {
   const handleSubmit = async (data: cronjobCreateSchemaType) => {
     try {
       setLoading(true);
-      const res = await API.post("/create", {
+      const res: AxiosResponse<Msg> = await API.post("/create", {
         userId: custmSession.user.id,
         title: data.title,
         url: data.url,
         schedule: data.schedule,
       });
-      setLoading(false);
       toast.success(res.data.message);
-      form.reset()
-    } catch (err) {
+      form.reset();
+    } catch (err: unknown) {
+      const error = err as AxiosError<Msg>;
+      toast.error("Failed to create cronjob!");
+      console.error("Error creating cronjob: ", error.response?.data.message);
+    } finally {
       setLoading(false);
-      toast.success("Error in creating cronjob");
-      console.error("Error in creating cronjob: ", err);
     }
   };
 
   const handleTestRun = async (url: string) => {
     try {
       setTestLoading(true);
-      const res = await API.post("/test-run", { url });
+      const res: AxiosResponse = await API.post("/test-run", { url });
       toast.success(res.data.message);
-      setTestLoading(false);
       console.log(res);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error = err as AxiosError<Msg>;
+      toast.error(error.response?.data.message);
+    } finally {
       setTestLoading(false);
-      toast.error(err.response.data.message);
     }
   };
 

@@ -12,6 +12,7 @@ import { roboto } from "../../../fonts/font";
 import { fetchSingleCronjob } from "@/app/actions/cronActions";
 import { LoaderIcon } from "lucide-react";
 import EditForm from "@/components/cronjobs/EditForm";
+import { CronJobOnly } from "@/types/cronjob.types";
 
 export default function Page() {
   const router = useRouter();
@@ -20,7 +21,7 @@ export default function Page() {
   const id = params.id as string;
 
   const [fetching, setFetching] = useState(false);
-  const [cronjob, setCronjob] = useState<any>({});
+  const [cronjob, setCronjob] = useState<CronJobOnly | undefined>();
   const [initialValues, setInitialValues] = useState({
     title: "",
     url: "",
@@ -35,8 +36,8 @@ export default function Page() {
     resolver: zodResolver(cronjobUpdateSchema),
   });
 
-  useEffect(() => {
-    const getCronjob = async () => {
+  const getCronjob = async () => {
+    try {
       setFetching(true);
       const job = await fetchSingleCronjob(id);
       setCronjob(job);
@@ -52,8 +53,14 @@ export default function Page() {
           schedule: job.cronSchedule,
         });
       }
+    } catch (err) {
+      const error = err as Error;
+      console.error("Error fetching cronjob : ", error.message);
+    } finally {
       setFetching(false);
-    };
+    }
+  };
+  useEffect(() => {
     getCronjob();
   }, []);
 
