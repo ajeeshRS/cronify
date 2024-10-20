@@ -1,7 +1,12 @@
 import { formatDate, isSameDay } from "@/lib/utils";
+import { PreviousEventType } from "@/types/cronjob.types";
 import { Clock } from "lucide-react";
 
-export default function CronEventCard({ event }: any) {
+interface Props {
+  event: PreviousEventType;
+}
+
+export default function CronEventCard({ event }: Props) {
   return (
     <div className="w-full flex md:flex-row flex-col items-center justify-between border rounded-xl py-5 px-3 md:pr-10 my-1">
       <div className="w-full flex items-center justify-start">
@@ -29,7 +34,9 @@ export default function CronEventCard({ event }: any) {
           </p>
         )
       ) : (
-        <p className="md:text-sm text-xs py-2 md:w-3/6 w-full text-end">Executed on {formatDate(event.time)}</p>
+        <p className="md:text-sm text-xs py-2 md:w-3/6 w-full text-end">
+          Executed on {formatDate(event.time)}
+        </p>
       )}
     </div>
   );

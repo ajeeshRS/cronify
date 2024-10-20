@@ -13,8 +13,14 @@ import { Input } from "../ui/input";
 import { useState } from "react";
 import { updateUsername } from "@/app/actions/cronActions";
 import { toast } from "sonner";
+import { UserInfo } from "@/types/user.types";
 
-export default function EditUsernameDialog({ user, getUser }: any) {
+interface Props {
+  user: UserInfo;
+  getUser: () => void;
+}
+
+export default function EditUsernameDialog({ user, getUser }: Props) {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [username, setUsername] = useState<string>("");
   const [loading, setLoading] = useState(false);
@@ -24,7 +30,7 @@ export default function EditUsernameDialog({ user, getUser }: any) {
       setLoading(true);
       await updateUsername(username);
       toast.success("Username updated");
-      getUser()
+      getUser();
       setEditDialogOpen(false);
     } catch (err) {
       console.error("Error updating username");

@@ -30,8 +30,14 @@ import { API } from "@/app/config/axios";
 import { useSession } from "next-auth/react";
 import { CustomSession } from "@/lib/auth";
 import { toast } from "sonner";
+import { CronJobOnly } from "@/types/cronjob.types";
 
-export default function CronjobCard({ job, getCronJobs }: any) {
+interface Props {
+  job: CronJobOnly;
+  getCronJobs: () => void;
+}
+
+export default function CronjobCard({ job, getCronJobs }: Props) {
   const { data: session, status } = useSession();
   const customSession = session as CustomSession;
 

@@ -17,9 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  cronjobUpdateSchemaType,
-} from "@/lib/validators/cronjob.validator";
+import { cronjobUpdateSchemaType } from "@/lib/validators/cronjob.validator";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { CustomSession } from "@/lib/auth";
@@ -27,7 +25,19 @@ import { API } from "@/app/config/axios";
 import { toast } from "sonner";
 import { useWatch } from "react-hook-form";
 
-export default function EditForm({ id, initialValue, form }: any) {
+interface InitialState {
+  title: string;
+  url: string;
+  schedule: string;
+}
+
+interface Props {
+  id: string;
+  initialValue: InitialState;
+  form: any;
+}
+
+export default function EditForm({ id, initialValue, form }: Props) {
   const [loading, setLoading] = useState(false);
   const [testLoading, setTestLoading] = useState(false);
   const [initialValues, setInitialValues] = useState({
@@ -93,7 +103,7 @@ export default function EditForm({ id, initialValue, form }: any) {
   useEffect(() => {
     setInitialValues(initialValue);
   }, [initialValue]);
-  
+
   return (
     <Form {...form}>
       <h3 className="w-full text-center font-bold text-2xl">Edit CronJob</h3>
@@ -147,7 +157,10 @@ export default function EditForm({ id, initialValue, form }: any) {
                     defaultValue={field.value}
                   >
                     <SelectTrigger className="w-16 mx-2">
-                      <SelectValue defaultValue={initialValues.schedule} placeholder={field.value} />
+                      <SelectValue
+                        defaultValue={initialValues.schedule}
+                        placeholder={field.value}
+                      />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="5">5</SelectItem>

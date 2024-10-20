@@ -111,7 +111,7 @@ export default function Page() {
         <p className="font-medium text-sm"> Recent Events</p>
         <div className="w-full flex flex-col items-start justify-center my-3">
           {events.length > 0 ? (
-            events.map((event: any, i: number) => (
+            events.map((event, i) => (
               <EventCard key={i} event={event} />
             ))
           ) : (

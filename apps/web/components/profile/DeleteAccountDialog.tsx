@@ -16,8 +16,13 @@ import { deleteUserAccount } from "@/app/actions/cronActions";
 import { toast } from "sonner";
 import { signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { UserInfo } from "@/types/user.types";
 
-export default function DeleteAccountDialog({ user }: any) {
+interface Props {
+  user: UserInfo;
+}
+
+export default function DeleteAccountDialog({ user }: Props) {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [userInput, setUserInput] = useState("");
   const [confirmed, setConfirmed] = useState(false);
@@ -30,7 +35,7 @@ export default function DeleteAccountDialog({ user }: any) {
         return toast.error("Wrong input!");
       }
       setDeleteLoading(true);
-      
+
       await deleteUserAccount();
       toast.success("Account deleted !");
 
