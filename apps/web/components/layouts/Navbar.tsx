@@ -71,7 +71,8 @@ export default function Navbar() {
             <MoveLeft className="ml-1 w-5 h-5 opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all duration-200 ease-in-out " />
           </li>
         </ul>
-        {!session?.user && (
+      </div>
+        {!session?.user && pathname === "/" && (
           <Button
             size={"lg"}
             className={`bg-[#DAF872] font-medium rounded-full text-xl py-5 px-6 shadow-none text-inherit hover:bg-white border-[#DAF872] border hover:border-[#000] hover:text-[#000]`}
@@ -79,7 +80,6 @@ export default function Navbar() {
             <Link href={"/login"}>Log in</Link>
           </Button>
         )}
-      </div>
       {status !== "loading" && session?.user && pathname !== "/profile" && (
         <DropdownMenu>
           <DropdownMenuTrigger
@@ -90,10 +90,6 @@ export default function Navbar() {
             </p>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-            <DropdownMenuLabel className="font-semibold text-lg">
-              My Account
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
             <DropdownMenuItem
               className="font-medium text-base"
               onClick={() => router.push("/profile")}

@@ -33,7 +33,7 @@ export default function EditForm({ id, initialValue, form }: any) {
   const [initialValues, setInitialValues] = useState({
     title: "",
     url: "",
-    schedule: "10",
+    schedule: "",
   });
   const router = useRouter();
 
@@ -147,7 +147,7 @@ export default function EditForm({ id, initialValue, form }: any) {
                     defaultValue={field.value}
                   >
                     <SelectTrigger className="w-16 mx-2">
-                      <SelectValue defaultValue="10" placeholder="10" />
+                      <SelectValue defaultValue={initialValues.schedule} placeholder={field.value} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="5">5</SelectItem>
