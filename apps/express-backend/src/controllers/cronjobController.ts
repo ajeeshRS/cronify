@@ -8,17 +8,26 @@ import {
 } from "../utils/utils";
 import { deleteOlderEvents, scheduledjobs } from "..//services/cronJobService";
 import { sendServiceFailMail } from "../services/mailService";
+import {
+  CronJobActionSchema,
+  CronJobCreateSchema,
+  CronJobTestRunSchema,
+  CronjobUpdateSchema,
+} from "../validators/cronjob.validator";
 const prisma = new PrismaClient();
 
 export const createCronjob = async (req: Request, res: Response) => {
   try {
-    const { userId, title, url, schedule } = req.body;
+    const result = CronJobCreateSchema.safeParse(req.body);
 
-    if (!userId || !title || !url || !schedule) {
-      res.status(403).json("All fields are required");
-      console.error("All fields are required");
+    if (!result.success) {
+      console.error("Error validating CronJobCreate schema : ", result.error);
+      res.status(400).json("Validation failed");
       return;
     }
+
+    const { userId, title, url, schedule } = result.data;
+
     const newCronJob = await prisma.cronJob.create({
       data: {
         userId,
@@ -87,11 +96,14 @@ export const createCronjob = async (req: Request, res: Response) => {
 
 export const cronTestRun = async (req: Request, res: Response) => {
   try {
-    const { url } = req.body;
-    if (!url) {
-      res.status(400).json({ message: "URL is required" });
+    const result = CronJobTestRunSchema.safeParse(req.body);
+    if (!result.success) {
+      console.error("Error validating url : ", result.error);
+      res.status(400).json("Validation failed");
       return;
     }
+
+    const { url } = result.data;
 
     const response = await execute(url);
     if (response) {
@@ -121,12 +133,14 @@ export const cronTestRun = async (req: Request, res: Response) => {
 
 export const enableCronjob = async (req: Request, res: Response) => {
   try {
-    const { cronjobId, userId } = req.body;
-
-    if (!userId || !cronjobId) {
-      res.status(403).json("Bad request");
-      throw new Error("Missing userId or cronjobId");
+    const result = CronJobActionSchema.safeParse(req.body);
+    if (!result.success) {
+      console.error("Error validating CronJobAction schema : ", result.error);
+      res.status(400).json("Validation failed");
+      return;
     }
+
+    const { cronjobId, userId } = result.data;
 
     const user = await prisma.user.findUnique({
       where: {
@@ -150,7 +164,7 @@ export const enableCronjob = async (req: Request, res: Response) => {
       return;
     }
 
-    const result = await prisma.cronJob.update({
+    const updatedCronjob = await prisma.cronJob.update({
       where: {
         id: cronjobId,
       },
@@ -159,13 +173,13 @@ export const enableCronjob = async (req: Request, res: Response) => {
       },
     });
 
-    const cronExpression = getCronExpression(result.cronSchedule);
+    const cronExpression = getCronExpression(updatedCronjob.cronSchedule);
     const nextExecutions = getNextTwoExecutions(cronExpression);
 
     for (const nextTime of nextExecutions) {
       await prisma.event.create({
         data: {
-          cronJobId: result.id,
+          cronJobId: updatedCronjob.id,
           time: nextTime,
           status: "PENDING",
         },
@@ -188,12 +202,14 @@ export const enableCronjob = async (req: Request, res: Response) => {
 
 export const disableCronjob = async (req: Request, res: Response) => {
   try {
-    const { cronjobId, userId } = req.body;
-
-    if (!userId || !cronjobId) {
-      res.status(403).json("Bad request");
-      throw new Error("Missing userId or cronjobId");
+    const result = CronJobActionSchema.safeParse(req.body);
+    if (!result.success) {
+      console.error("Error validating CronJobAction schema : ", result.error);
+      res.status(400).json("Validation failed");
+      return;
     }
+
+    const { cronjobId, userId } = result.data;
 
     const user = await prisma.user.findUnique({
       where: {
@@ -217,7 +233,7 @@ export const disableCronjob = async (req: Request, res: Response) => {
       return;
     }
 
-    const result = await prisma.cronJob.update({
+    const updatdCronjob = await prisma.cronJob.update({
       where: {
         id: cronjobId,
       },
@@ -248,13 +264,15 @@ export const disableCronjob = async (req: Request, res: Response) => {
 
 export const deleteCronjob = async (req: Request, res: Response) => {
   try {
-    const userId = req.query.userId as string;
-    const cronjobId = req.query.cronjobId as string;
+    const result = CronJobActionSchema.safeParse(req.query);
 
-    if (!userId || !cronjobId) {
-      res.status(403).json("Bad request");
-      throw new Error("Missing userId or cronjobId");
+    if (!result.success) {
+      console.error("Error validating CronJobActionSchema  : ", result.error);
+      res.status(400).json("Validation failed");
+      return;
     }
+
+    const { userId, cronjobId } = result.data;
 
     const user = await prisma.user.findUnique({
       where: {
@@ -299,12 +317,16 @@ export const deleteCronjob = async (req: Request, res: Response) => {
 
 export const updateCronjob = async (req: Request, res: Response) => {
   try {
-    const { cronjobId, userId, title, url, schedule } = req.body;
+    const result = CronjobUpdateSchema.safeParse(req.body);
 
-    if (!cronjobId || !userId || !title || !url || !schedule) {
-      res.status(400).json({ message: "Missing required fields" });
+    if (!result.success) {
+      console.error("Error validating CronjobUpdateSchema : ", result.error);
+
+      res.status(400).json("Validation failed");
       return;
     }
+
+    const { cronjobId, userId, title, url, schedule } = result.data;
 
     const cronjob = await prisma.cronJob.findFirst({
       where: {
@@ -345,7 +367,7 @@ export const updateCronjob = async (req: Request, res: Response) => {
       const newScheduledJob = cron.schedule(cronExpression, async () => {
         const executionTime = new Date();
         try {
-          const response = await execute(url);
+          const response = await execute(url as string);
           await prisma.event.create({
             data: {
               cronJobId: updated.id,
