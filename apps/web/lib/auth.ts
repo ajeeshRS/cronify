@@ -1,9 +1,11 @@
 import { DefaultSession, Session } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
 import { compare } from "bcryptjs";
 import { NextAuthOptions } from "next-auth";
 import { PrismaClient } from "@prisma/client";
 import { CustomSessionUser } from "@/types/user.types";
+import { SigninSchema } from "./validators/auth.validator";
 const prisma = new PrismaClient();
 
 export interface CustomSession extends DefaultSession {
@@ -12,6 +14,10 @@ export interface CustomSession extends DefaultSession {
 
 export const authOptions = {
   providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID as string,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+    }),
     CredentialsProvider({
       name: "Email",
       credentials: {
@@ -22,8 +28,14 @@ export const authOptions = {
           placeholder: "",
         },
       },
-      async authorize(credentials: any) {
-        const { email, password } = credentials;
+      async authorize(credentials): Promise<any> {
+        const result = SigninSchema.safeParse(credentials);
+
+        if (!result.success) {
+          throw new Error("Input validation failed");
+        }
+
+        const { email, password } = result.data;
 
         const user = await prisma.user.findUnique({
           where: { email },
@@ -45,10 +57,33 @@ export const authOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
+    async jwt({ token, user, account, profile }) {
+      if (account?.provider === "google") {
+        console.log("GOOOOOOOOOOGLE reached");
+        const existingUser = await prisma.user.findUnique({
+          where: {
+            email: profile?.email,
+          },
+        });
+        if (!existingUser) {
+          console.log("No existing user");
+          const newUser = await prisma.user.create({
+            data: {
+              email: profile?.email as string,
+              username: profile?.name as string,
+              password: "",
+            },
+          });
+          token.id = newUser.id;
+        } else {
+          console.log("existing user");
+          token.id = existingUser.id;
+        }
+      } else if (user) {
+        console.log("normal user!!");
         token.id = user.id;
       }
+
       return token;
     },
     async session({ session, token }) {

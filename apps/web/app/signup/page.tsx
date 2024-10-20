@@ -20,7 +20,9 @@ import axios, { AxiosError } from "axios";
 import { toast } from "sonner";
 import { useState } from "react";
 import { Msg } from "@/types/common";
-
+import Image from "next/image";
+import googleIcon from "../../public/google.svg";
+import { signIn } from "next-auth/react";
 export default function Page() {
   const [loading, setLoading] = useState(false);
 
@@ -120,6 +122,13 @@ export default function Page() {
             </Button>
           </form>
         </Form>
+        <Button
+          className="bg-white hover:bg-gray-50 text-black w-full mt-3 text-sm rounded-3xl"
+          onClick={() => signIn("google")}
+        >
+          <Image className="w-5 h-5 mr-2" src={googleIcon} alt="google-icon" />{" "}
+          {loading ? "Signing up.." : "Signup with google"}
+        </Button>
       </div>
     </div>
   );

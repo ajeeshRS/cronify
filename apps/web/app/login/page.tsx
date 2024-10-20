@@ -20,6 +20,9 @@ import { signIn, useSession, SignInResponse } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useState } from "react";
+import googleIcon from "../../public/google.svg";
+import Image from "next/image";
+
 export default function Page() {
   const router = useRouter();
   const form = useForm<SigninSchemaType>({
@@ -38,7 +41,7 @@ export default function Page() {
   async function onSubmit(values: SigninSchemaType) {
     try {
       const { email, password } = values;
-      
+
       setLoading(true);
       const response: SignInResponse | undefined = await signIn("credentials", {
         email,
@@ -116,10 +119,17 @@ export default function Page() {
               </span>
             </p>
             <Button className="w-full mt-3 rounded-3xl" type="submit">
-              {loading ? "Logging in..." : "Log in"}
+              {loading ? "Logging in..." : "Login"}
             </Button>
           </form>
         </Form>
+        <Button
+          className="bg-white hover:bg-gray-50 text-black w-full mt-3 text-sm rounded-3xl"
+          onClick={() => signIn("google")}
+        >
+          <Image className="w-5 h-5 mr-2" src={googleIcon} alt="google-icon" />{" "}
+          {loading ? "Logging in.." : "Login with google"}
+        </Button>
       </div>
     </div>
   );
