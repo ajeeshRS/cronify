@@ -23,6 +23,7 @@ import { Msg } from "@/types/common";
 import Image from "next/image";
 import googleIcon from "../../public/google.svg";
 import { signIn } from "next-auth/react";
+import { roboto } from "../fonts/font";
 export default function Page() {
   const [loading, setLoading] = useState(false);
 
@@ -117,17 +118,17 @@ export default function Page() {
                 <Link href={"/login"}>Login</Link>
               </span>
             </p>
-            <Button className="w-full mt-3 rounded-3xl" type="submit">
+            <Button className="w-full mt-3 h-10 rounded-3xl" type="submit">
               {loading ? "Creating..." : "Signup"}
             </Button>
           </form>
         </Form>
         <Button
-          className="bg-white hover:bg-gray-50 text-black w-full mt-3 text-sm rounded-3xl"
+          className="bg-white h-10 hover:bg-gray-50 text-black w-full mt-3 rounded-3xl "
           onClick={() => signIn("google")}
         >
           <Image className="w-5 h-5 mr-2" src={googleIcon} alt="google-icon" />{" "}
-          {loading ? "Signing up.." : "Signup with google"}
+          <span className={`font-medium`}>Signup with Google</span>
         </Button>
       </div>
     </div>

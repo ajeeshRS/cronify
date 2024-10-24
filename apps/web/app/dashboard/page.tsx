@@ -45,8 +45,8 @@ export default function Page() {
       setEnabledJobCount(result.activeCount);
       setDisabledJobCount(result.inActiveCount);
       setFailedCount(result.failedCount);
-    } catch (err:unknown) {
-      const error = err as Error
+    } catch (err: unknown) {
+      const error = err as Error;
       console.log("Error in getting cronjob Stats : ", error.message);
     }
   };
@@ -86,7 +86,7 @@ export default function Page() {
         <div className="flex items-center">
           <Button
             onClick={() => router.push("/cronjobs")}
-            className={`bg-[#DAF872] font-normal text-sm py-2 px-3 rounded-lg shadow-none text-inherit hover:bg-white border-[#DAF872] border hover:border-[#000] hover:text-[#000] flex items-center mr-2`}
+            className={`bg-[#DAF872] font-normal text-sm py-2 px-3 rounded-lg shadow-none text-inherit hover:bg-[#d2ee6d] border-none flex items-center mr-2`}
           >
             <Eye className="w-5 h-5 pr-1" />
             <p className="md:block hidden"> View cronjobs</p>
@@ -94,7 +94,7 @@ export default function Page() {
           </Button>
           <Button
             onClick={() => router.push("/create")}
-            className={`bg-[#DAF872] font-normal md:text-sm text-xs py-2 px-3 rounded-lg shadow-none text-inherit hover:bg-white border-[#DAF872] border hover:border-[#000] hover:text-[#000] flex items-center`}
+            className={`bg-[#DAF872] font-normal md:text-sm text-xs py-2 px-3 rounded-lg shadow-none text-inherit hover:bg-[#d2ee6d]  flex items-center`}
           >
             <Plus className="w-5 h-5 pr-1" />
             <p className="md:block hidden">Create cronjob</p>
@@ -111,9 +111,7 @@ export default function Page() {
         <p className="font-medium text-sm"> Recent Events</p>
         <div className="w-full flex flex-col items-start justify-center my-3">
           {events.length > 0 ? (
-            events.map((event, i) => (
-              <EventCard key={i} event={event} />
-            ))
+            events.map((event, i) => <EventCard key={i} event={event} />)
           ) : (
             <p className="text-sm text-gray-500 flex items-center my-10">
               Recent events will show here.

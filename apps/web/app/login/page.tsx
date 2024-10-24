@@ -118,17 +118,17 @@ export default function Page() {
                 <Link href={"/signup"}>Signup</Link>
               </span>
             </p>
-            <Button className="w-full mt-3 rounded-3xl" type="submit">
+            <Button className="w-full mt-3 h-10 rounded-3xl" type="submit">
               {loading ? "Logging in..." : "Login"}
             </Button>
           </form>
         </Form>
         <Button
-          className="bg-white hover:bg-gray-50 text-black w-full mt-3 text-sm rounded-3xl"
+          className="bg-white hover:bg-gray-50 text-black w-full mt-3 h-10 rounded-3xl"
           onClick={() => signIn("google")}
         >
-          <Image className="w-5 h-5 mr-2" src={googleIcon} alt="google-icon" />{" "}
-          {loading ? "Logging in.." : "Login with google"}
+          <Image className="w-5 h-5 mr-2" src={googleIcon} alt="google-icon" />
+          <span>Login with google</span>
         </Button>
       </div>
     </div>

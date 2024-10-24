@@ -22,14 +22,14 @@ export default function EventCard({ event }: Props) {
         </div>
       </div>
       {isSameDay(new Date(), new Date(event.time)) ? (
-        <p className="text-sm w-full text-end">
+        <p className="text-sm w-full text-end text-gray-600">
           Executed Today at{" "}
           {new Date(event.time).toLocaleTimeString("en-US", {
             hour12: true,
           })}
         </p>
       ) : (
-        <p className="text-xs w-full text-end py-2">
+        <p className="text-xs w-full text-end py-2 text-gray-600">
           Executed on {formatDate(event.time)}
         </p>
       )}
