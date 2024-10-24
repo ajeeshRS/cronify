@@ -14,3 +14,15 @@ export const SigninSchema = z.object({
 });
 
 export type SigninSchemaType = z.infer<typeof SigninSchema>;
+
+export const ChangePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, "current password is required"),
+    newPassword: z.string().min(1, "current password is required"),
+    confirmPassword: z.string().min(1, "current password is required"),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords doesn't match",
+    path: ["confirmPassword"],
+  });
+export type ChangePasswordSchemaType = z.infer<typeof ChangePasswordSchema>;

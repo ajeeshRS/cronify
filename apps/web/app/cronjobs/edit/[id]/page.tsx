@@ -9,7 +9,7 @@ import {
 } from "@/lib/validators/cronjob.validator";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { roboto } from "../../../fonts/font";
-import { fetchSingleCronjob } from "@/app/actions/cronActions";
+import { fetchSingleCronjob } from "@/app/actions/actions";
 import { LoaderIcon } from "lucide-react";
 import EditForm from "@/components/cronjobs/EditForm";
 import { CronJobOnly } from "@/types/cronjob.types";

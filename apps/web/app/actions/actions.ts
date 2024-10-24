@@ -4,7 +4,7 @@ import { CronJobStatus, NextExecutionType } from "@/types/cronjob.types";
 import { UserInfo } from "@/types/user.types";
 import { PrismaClient } from "@prisma/client";
 import { getServerSession } from "next-auth";
-
+import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 export const fetchCronJobs = async () => {
@@ -342,5 +342,60 @@ export const updateUsername = async (username: string) => {
   } catch (err) {
     console.error("Error updating username : ", err);
     throw new Error("Unable to update username");
+  }
+};
+
+export const changeCurrentPassword = async (
+  currentPassword: string,
+  newPassword: string
+) => {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+      throw new Error("Not authenticated");
+    }
+
+    const customSession = session as CustomSession;
+
+    const user = await prisma.user.findUnique({
+      where: {
+        id: customSession.user.id,
+      },
+    });
+
+    if (!user) {
+      throw new Error("No user found");
+    }
+
+    const isPasswordMatch = await bcrypt.compare(
+      currentPassword,
+      user.password
+    );
+
+    if (!isPasswordMatch) {
+      throw new Error("Incorrect password");
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    if (!hashedPassword) {
+      throw new Error("Internal server error");
+    }
+
+    await prisma.user.update({
+      where: {
+        id: customSession.user.id,
+      },
+      data: {
+        password: hashedPassword,
+      },
+    });
+
+    console.log("Password updated successfully");
+  } catch (err) {
+    const error = err as Error
+    console.error("Error updating password : ", err);
+    throw new Error(error.message);
   }
 };

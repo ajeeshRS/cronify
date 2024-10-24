@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { LoaderIcon, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { fetchCronJobs } from "../actions/cronActions";
+import { fetchCronJobs } from "../actions/actions";
 import { CustomSession } from "@/lib/auth";
 import CronjobCard from "@/components/cronjobs/CronjobCard";
 import { CronJobOnly } from "@/types/cronjob.types";

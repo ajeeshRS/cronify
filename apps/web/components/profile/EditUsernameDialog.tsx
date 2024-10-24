@@ -11,7 +11,7 @@ import { Button } from "../ui/button";
 import { Pen } from "lucide-react";
 import { Input } from "../ui/input";
 import { useState } from "react";
-import { updateUsername } from "@/app/actions/cronActions";
+import { updateUsername } from "@/app/actions/actions";
 import { toast } from "sonner";
 import { UserInfo } from "@/types/user.types";
 

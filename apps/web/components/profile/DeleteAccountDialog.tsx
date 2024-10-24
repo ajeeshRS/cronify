@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "../ui/button";
 import { Trash } from "lucide-react";
 import { useState } from "react";
-import { deleteUserAccount } from "@/app/actions/cronActions";
+import { deleteUserAccount } from "@/app/actions/actions";
 import { toast } from "sonner";
 import { signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -55,12 +55,12 @@ export default function DeleteAccountDialog({ user }: Props) {
   return (
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
       <DialogTrigger
-        className="flex items-center"
+        className="flex items-center md:w-fit w-full"
         onClick={(e) => {
           e.stopPropagation();
         }}
       >
-        <Button variant={"destructive"} className="mr-3">
+        <Button variant={"destructive"} className="md:mr-3 md:w-fit w-full md:my-0 my-3">
           <Trash className="mr-2 w-4 h-4" /> Delete Account
         </Button>
       </DialogTrigger>

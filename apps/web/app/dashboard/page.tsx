@@ -7,7 +7,7 @@ import { useSession } from "next-auth/react";
 import { GreetingMessage } from "@/components/dashboard/Greetings";
 import { useEffect, useState } from "react";
 import { CustomSession } from "@/lib/auth";
-import { fetchAllEvents, fetchCronjobStats } from "../actions/cronActions";
+import { fetchAllEvents, fetchCronjobStats } from "../actions/actions";
 import DashboardStats from "@/components/dashboard/DashboardStats";
 import EventCard from "@/components/dashboard/EventCard";
 import PaginationComponent from "@/components/PaginationComponent";

@@ -3,13 +3,14 @@ import { Button } from "@/components/ui/button";
 import { roboto } from "../fonts/font";
 import { LoaderIcon, LogOut } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { fetchUserInfo } from "../actions/cronActions";
+import { fetchUserInfo } from "../actions/actions";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
 import EditUsernameDialog from "@/components/profile/EditUsernameDialog";
 import DeleteAccountDialog from "@/components/profile/DeleteAccountDialog";
 import { UserInfo } from "@/types/user.types";
+import ChangePasswordDialog from "@/components/profile/ChangePasswordDialog";
 
 export default function Page() {
   const [user, setUser] = useState<UserInfo | null>(null);
@@ -86,9 +87,10 @@ export default function Page() {
               </p>
             </div>
           </div>
-          <div className="w-full flex items-center md:justify-end justify-center md:py-0 py-10">
+          <div className="w-full flex md:flex-row flex-col items-center md:justify-end justify-center md:py-0 py-10">
             <DeleteAccountDialog user={user} />
-            <Button onClick={handleSignout}>
+            <ChangePasswordDialog  />
+            <Button onClick={handleSignout} className="md:my-0 my-3 md:w-fit w-full">
               <LogOut className="mr-2 w-4 h-4" /> Logout
             </Button>
           </div>

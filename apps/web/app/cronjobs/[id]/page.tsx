@@ -2,7 +2,7 @@
 import {
   fetchCronjobWithEvents,
   fetchNextExectutions,
-} from "@/app/actions/cronActions";
+} from "@/app/actions/actions";
 import { roboto } from "@/app/fonts/font";
 import { LoaderIcon } from "lucide-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
