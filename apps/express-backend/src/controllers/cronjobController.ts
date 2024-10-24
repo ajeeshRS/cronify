@@ -76,8 +76,12 @@ export const createCronjob = async (req: Request, res: Response) => {
     job.start();
 
     const nextExecutions = getNextTwoExecutions(cronExpression);
-
     for (const nextTime of nextExecutions) {
+      const now = new Date();
+      if (nextTime <= now) {
+        res.status(400).json("Invalid schedule");
+        return;
+      }
       await prisma.event.create({
         data: {
           cronJobId: newCronJob.id,
