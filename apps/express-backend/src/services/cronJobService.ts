@@ -9,6 +9,8 @@ import { sendServiceFailMail } from "./mailService";
 
 const prisma = new PrismaClient();
 
+export const MAX_RETRIES = 3;
+export const RETRY_DELAY_MS = 5000;
 export const scheduledjobs = new Map<string, cron.ScheduledTask>();
 
 export const loadCronJobs = async () => {
@@ -27,155 +29,32 @@ export const loadCronJobs = async () => {
       // schedule the cronjob
       const scheduledJob = cron.schedule(cronExpression, async () => {
         const executionTime = new Date();
-        try {
-          const res = await execute(url);
+        let retriesLeft = MAX_RETRIES;
+        await executeJobWithRetry(url, id, executionTime, title, retriesLeft);
 
-          // check for existing events
-          const existingEvent = await prisma.event.findFirst({
-            where: {
-              cronJobId: id,
-              status: "PENDING",
-            },
-            orderBy: {
-              time: "asc",
-            },
-          });
-          console.log("existing event:", existingEvent);
+        // checks for the scheduled events
+        const scheduledEvents = await prisma.event.findMany({
+          where: {
+            cronJobId: id,
+            status: "PENDING",
+          },
+        });
 
-          // if event already exist - update else create
-          if (existingEvent) {
-            console.log("event updating...");
-            await prisma.event.update({
-              where: {
-                id: existingEvent.id,
-              },
-              data: {
-                status: "SUCCESS",
-              },
-            });
-          } else {
-            console.log("creating event...");
-            await prisma.event.create({
-              data: {
-                cronJobId: id,
-                time: executionTime,
-                status: "SUCCESS",
-              },
-            });
-          }
-          // checks for the scheduled events
-          const scheduledEvents = await prisma.event.findMany({
-            where: {
-              cronJobId: id,
-              status: "PENDING",
-            },
-          });
+        // if scheduled events length is 1 then create one
+        if (scheduledEvents.length === 1) {
+          const nextExecutions = getNextTwoExecutions(cronExpression);
 
-          // if scheduled events length is 1 then create one
-          if (scheduledEvents.length === 1) {
-            const nextExecutions = getNextTwoExecutions(cronExpression);
-
-            await prisma.event.create({
-              data: {
-                cronJobId: id,
-                time: nextExecutions[1],
-                status: "PENDING",
-              },
-            });
-          }
-
-          // clear up older events
-          await deleteOlderEvents(id);
-
-          // updates the cronjob isFailed status
-          await prisma.cronJob.update({
-            where: {
-              id,
-            },
+          await prisma.event.create({
             data: {
-              isFailed: false,
-            },
-          });
-
-          console.log(
-            `Cron job ${title} executed successfully at ${executionTime}`
-          );
-        } catch (err) {
-          // Error handling
-          const existingEvent = await prisma.event.findFirst({
-            where: {
               cronJobId: id,
-              status: "PENDING",
-            },
-            orderBy: {
-              time: "asc",
-            },
-          });
-
-          // if the event exist update status with FAILURE else create one
-          if (existingEvent) {
-            await prisma.event.update({
-              where: {
-                id: existingEvent.id,
-              },
-              data: {
-                status: "FAILURE",
-              },
-            });
-          } else {
-            await prisma.event.create({
-              data: {
-                cronJobId: id,
-                time: executionTime,
-                status: "FAILURE",
-              },
-            });
-          }
-          // updates cronjob isFailed status
-          await prisma.cronJob.update({
-            where: {
-              id,
-            },
-            data: {
-              isFailed: true,
-            },
-          });
-
-          const scheduledEvents = await prisma.event.findMany({
-            where: {
-              cronJobId: id,
+              time: nextExecutions[1],
               status: "PENDING",
             },
           });
-
-          if (scheduledEvents.length === 1) {
-            const nextExecutions = getNextTwoExecutions(cronExpression);
-
-            await prisma.event.create({
-              data: {
-                cronJobId: id,
-                time: nextExecutions[1],
-                status: "PENDING",
-              },
-            });
-          }
-          const result = await prisma.cronJob.findFirst({
-            where: {
-              id: id,
-            },
-            select: {
-              user: {
-                select: {
-                  email: true,
-                },
-              },
-            },
-          });
-
-          // sends cronjob failed mail
-          await sendServiceFailMail(result?.user.email as string, title);
-          console.error(`Error in executing ${title} job: `, err);
         }
+
+        // clear up older events
+        await deleteOlderEvents(id);
       });
       // save the job in-memory and starts
       scheduledjobs.set(id, scheduledJob);
@@ -210,7 +89,7 @@ export const deleteOlderEvents = async (cronJobId: string) => {
       });
       const olderEventIds = olderEvents.map((event) => event.id);
       console.log("older events : ", olderEvents);
-      
+
       const result = await prisma.event.deleteMany({
         where: {
           id: {
@@ -224,5 +103,114 @@ export const deleteOlderEvents = async (cronJobId: string) => {
     }
   } catch (err) {
     console.error("Error in deleting older events : ", err);
+  }
+};
+
+export const executeJobWithRetry = async (
+  url: string,
+  jobId: string,
+  executionTime: Date,
+  title: string,
+  retriesLeft: number
+) => {
+  try {
+    await execute(url);
+    const existingEvent = await prisma.event.findFirst({
+      where: {
+        cronJobId: jobId,
+        status: "PENDING",
+      },
+      orderBy: {
+        time: "asc",
+      },
+    });
+    console.log("existing event:", existingEvent);
+
+    if (existingEvent) {
+      console.log("event updating...");
+      await prisma.event.update({
+        where: {
+          id: existingEvent.id,
+        },
+        data: {
+          status: "SUCCESS",
+        },
+      });
+    } else {
+      console.log("creating event...");
+      await prisma.event.create({
+        data: {
+          cronJobId: jobId,
+          time: executionTime,
+          status: "SUCCESS",
+        },
+      });
+    }
+    await prisma.cronJob.update({
+      where: {
+        id: jobId,
+      },
+      data: {
+        isFailed: false,
+      },
+    });
+    console.log(`cronjob ${title} executed successfully at ${executionTime}`);
+  } catch (err) {
+    if (retriesLeft > 0) {
+      retriesLeft--;
+      console.warn(
+        `cronjob ${title} execution failed. Retrying... (${MAX_RETRIES - retriesLeft}/${MAX_RETRIES})`
+      );
+      await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
+      await executeJobWithRetry(url, jobId, executionTime, title, retriesLeft);
+    } else {
+      const existingEvent = await prisma.event.findFirst({
+        where: {
+          cronJobId: jobId,
+          status: "PENDING",
+        },
+        orderBy: {
+          time: "asc",
+        },
+      });
+      // if the event exist update status with FAILURE else create one
+      if (existingEvent) {
+        console.log("event exist : ",existingEvent)
+        await prisma.event.update({
+          where: {
+            id: existingEvent.id,
+          },
+          data: {
+            status: "FAILURE",
+          },
+        });
+      } else {
+        await prisma.event.create({
+          data: {
+            cronJobId: jobId,
+            time: executionTime,
+            status: "FAILURE",
+          },
+        });
+      }
+      await prisma.cronJob.update({
+        where: { id: jobId },
+        data: { isFailed: true },
+      });
+      const result = await prisma.cronJob.findFirst({
+        where: {
+          id: jobId,
+        },
+        select: {
+          user: {
+            select: {
+              email: true,
+            },
+          },
+        },
+      }); // sends cronjob failed mail
+      await sendServiceFailMail(result?.user.email as string, title);
+      console.error(`cronjob ${title} failed after ${MAX_RETRIES} attempts:`, err);
+    }
   }
 };
