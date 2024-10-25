@@ -99,7 +99,7 @@ export default function Navbar() {
         <motion.div variants={navItem}>
           <Button
             size={"lg"}
-            className={`bg-[#DAF872] font-medium rounded-full text-xl py-5 px-6 shadow-none text-inherit hover:bg-white border-[#DAF872] border hover:border-[#000] hover:text-[#000]`}
+            className={`bg-[#DAF872] md:flex hidden font-medium rounded-full text-xl py-5 px-6 shadow-none text-inherit hover:bg-white border-[#DAF872] border hover:border-[#000] hover:text-[#000]`}
           >
             <Link href={"/login"}>Log in</Link>
           </Button>

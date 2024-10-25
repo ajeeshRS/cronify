@@ -8,12 +8,13 @@ datasource db {
 }
 
 model User {
-  id        String    @id @default(uuid())
-  username  String    @unique
-  email     String    @unique
-  password  String
-  cronJobs  CronJob[]
-  createdAt DateTime  @default(now())
+  id         String       @id @default(uuid())
+  username   String       @unique
+  email      String       @unique
+  password   String
+  cronJobs   CronJob[]
+  createdAt  DateTime     @default(now())
+  ResetToken ResetToken[]
 }
 
 model CronJob {
@@ -23,7 +24,7 @@ model CronJob {
   cronSchedule   String
   active         Boolean
   previousEvents Event[]
-  isFailed       Boolean @default(false)
+  isFailed       Boolean  @default(false)
   userId         String
   user           User     @relation(fields: [userId], references: [id])
   createdAt      DateTime @default(now())
@@ -42,4 +43,13 @@ enum EventStatus {
   SUCCESS
   FAILURE
   PENDING
+}
+
+model ResetToken {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  email     String
+  token     String
+  expiresAt DateTime
 }

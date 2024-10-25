@@ -26,3 +26,15 @@ export const ChangePasswordSchema = z
     path: ["confirmPassword"],
   });
 export type ChangePasswordSchemaType = z.infer<typeof ChangePasswordSchema>;
+
+export const ResetPasswordSchema = z
+  .object({
+    newPassword: z.string().min(1, "new password is required"),
+    confirmPassword: z.string().min(1, "confirm password is required"),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords doesn't match",
+    path: ["confirmPassword"],
+  });
+
+export type ResetPasswordSchemaType = z.infer<typeof ResetPasswordSchema>;

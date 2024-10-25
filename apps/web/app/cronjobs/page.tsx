@@ -56,9 +56,11 @@ export default function Page() {
         <div className="flex items-center">
           <Button
             onClick={() => router.push("/create")}
-            className={`bg-[#DAF872] font-normal text-sm py-2 px-3 rounded-lg shadow-none text-inherit hover:bg-white border-[#DAF872] border hover:border-[#000] hover:text-[#000] flex items-center`}
+            className={`bg-[#DAF872] font-normal md:text-sm text-xs py-2 px-3 rounded-lg shadow-none text-inherit hover:bg-[#d2ee6d]  flex items-center`}
           >
-            <Plus className="w-5 h-5 pr-1" /> Create cronjob
+            <Plus className="w-5 h-5 pr-1" />
+            <p className="md:block hidden">Create cronjob</p>
+            <p className="md:hidden block">Create</p>
           </Button>
         </div>
       </div>

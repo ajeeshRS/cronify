@@ -111,7 +111,12 @@ export default function Page() {
                 </FormItem>
               )}
             />
-            <p className="font-medium text-xs">Forgot password ?</p>
+            <p
+              className="font-medium text-xs hover:underline cursor-pointer"
+              onClick={() => router.push("/forgot-password")}
+            >
+              Forgot password ?
+            </p>
             <p className="text-sm font-medium w-full text-center py-5">
               Don&apos;t have an account ?{" "}
               <span className="font-semibold text-black hover:underline">

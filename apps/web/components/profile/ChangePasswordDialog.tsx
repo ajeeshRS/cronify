@@ -28,7 +28,7 @@ import { changeCurrentPassword } from "@/app/actions/actions";
 import { toast } from "sonner";
 export default function ChangePasswordDialog() {
   const [dialogOpen, setDialogOpen] = useState(false);
-
+  const [loading, setLoading] = useState(false);
   const form = useForm<ChangePasswordSchemaType>({
     resolver: zodResolver(ChangePasswordSchema),
     defaultValues: {
@@ -43,12 +43,15 @@ export default function ChangePasswordDialog() {
     newPassword: string
   ) => {
     try {
+      setLoading(true);
       await changeCurrentPassword(currentPassword, newPassword);
-      form.reset()
+      form.reset();
       toast.success("Password updated Successfully");
     } catch (err) {
       const error = err as Error;
       toast.error(error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -125,7 +128,7 @@ export default function ChangePasswordDialog() {
               )}
             />
             <Button className="my-1" type="submit">
-              Update
+              {loading ? "Updating.." : "Update"}
             </Button>
           </form>
         </Form>

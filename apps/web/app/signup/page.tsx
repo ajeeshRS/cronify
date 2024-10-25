@@ -23,7 +23,6 @@ import { Msg } from "@/types/common";
 import Image from "next/image";
 import googleIcon from "../../public/google.svg";
 import { signIn } from "next-auth/react";
-import { roboto } from "../fonts/font";
 export default function Page() {
   const [loading, setLoading] = useState(false);
 
@@ -42,7 +41,6 @@ export default function Page() {
       const res = await axios.post("/api/auth/signup", values);
 
       toast.success(res.data.message);
-      toast.success("Account created");
       form.reset();
     } catch (err: unknown) {
       const error = err as AxiosError<Msg>;

@@ -5,7 +5,14 @@ import { UserInfo } from "@/types/user.types";
 import { PrismaClient } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import bcrypt from "bcryptjs";
+import nodemailer from "nodemailer";
+import { generateToken } from "@/lib/utils";
+import jwt from "jsonwebtoken";
 const prisma = new PrismaClient();
+
+interface JwtPayloadWithEmail extends jwt.JwtPayload {
+  email: string;
+}
 
 export const fetchCronJobs = async () => {
   try {
@@ -394,8 +401,132 @@ export const changeCurrentPassword = async (
 
     console.log("Password updated successfully");
   } catch (err) {
-    const error = err as Error
+    const error = err as Error;
     console.error("Error updating password : ", err);
+    throw new Error(error.message);
+  }
+};
+
+export const sendResetPasswordMail = async (email: string) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
+
+    if (!user) {
+      throw new Error("No user found");
+    }
+
+    const token = generateToken(email);
+
+    if (!token) {
+      throw new Error("Internal server error");
+    }
+
+    await prisma.resetToken.create({
+      data: {
+        userId: user.id,
+        email,
+        token,
+        expiresAt: new Date(Date.now() + 3600 * 1000),
+      },
+    });
+
+    const transporter = nodemailer.createTransport({
+      service: "Gmail",
+      auth: {
+        user: process.env.EMAIL,
+        pass: process.env.APP_SECRET,
+      },
+      secure: false,
+    });
+
+    const mailOptions = {
+      from: process.env.EMAIL,
+      to: email,
+      subject: "Reset Password",
+      html: `
+        <div style="font-family: Arial, sans-serif; line-height: 1.5;">
+          <p>Hello,</p>
+    
+          <p>We received a request to reset the password for your account. Please click the link below to reset your password:</p>
+    
+          <p>
+            <a href="${process.env.NEXTAUTH_URL}/reset-password?token=${token}" 
+               style="background-color: #007bff; color: #ffffff; padding: 10px 15px; text-decoration: none; border-radius: 5px;">
+              Reset Your Password
+            </a>
+          </p>
+    
+          <p>If you did not request a password reset, please ignore this email. Your password will remain unchanged.</p>
+    
+          <p style="color: #888;">This link will expire in 1 hour.</p>
+    
+          <p style="font-style: italic; color: #888;">This is an automatically generated email. Please do not reply.</p>
+          
+          <p>Best regards,<br>Cronify</p>
+        </div>
+      `,
+    };
+
+    transporter.sendMail(mailOptions, (err, info) => {
+      if (err) {
+        console.error(`Error sending mail to ${email}`, err);
+        throw new Error("Failed to send mail");
+      } else {
+        console.log(`Reset Password mail sent to ${email}`, info.response);
+      }
+    });
+  } catch (err) {
+    console.error("Error in sending reset mail : ", err);
+    throw new Error("Failed to send reset mail.Please try again");
+  }
+};
+
+export const resetPassword = async (newPassword: string, token: string) => {
+  try {
+    const { email } = jwt.verify(
+      token,
+      process.env.JWT_SECRET as string
+    ) as JwtPayloadWithEmail;
+
+    const resetToken = await prisma.resetToken.findFirst({
+      where: {
+        token,
+        email,
+      },
+    });
+
+    if (!resetToken || resetToken.expiresAt < new Date()) {
+      throw new Error("session expired");
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    if (!hashedPassword) {
+      throw new Error("Internal server Error");
+    }
+
+    await prisma.user.update({
+      where: {
+        id: resetToken.userId,
+      },
+      data: {
+        password: hashedPassword,
+      },
+    });
+
+    await prisma.resetToken.delete({
+      where: {
+        id: resetToken.id,
+      },
+    });
+    console.log("Password reset successfully");
+  } catch (err) {
+    const error = err as Error;
+    console.log("Error resetting password : ", err);
     throw new Error(error.message);
   }
 };
