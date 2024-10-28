@@ -42,11 +42,11 @@ export default function Home() {
         initial="hidden"
         animate="visible"
         variants={container}
-        className="w-full min-h-[90vh] max-h-[100vh] flex flex-col items-center justify-start pt-24 mt-10 md:p-20 p-10"
+        className="w-full h-[100vh] flex flex-col items-center justify-start md:pt-24 pt-16 md:mt-10 mt-6 md:p-20 p-10"
       >
         <motion.h2
           variants={item}
-          className="font-extrabold md:text-8xl text-6xl pb-3 text-[#1B201C] text-center px-5"
+          className="font-extrabold md:text-8xl text-5xl pb-3 text-[#1B201C] text-center px-5"
         >
           Automate Your Uptime, Effortlessly!
         </motion.h2>

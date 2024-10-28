@@ -122,10 +122,10 @@ export default function Page() {
           </form>
         </Form>
         <Button
-          className="bg-white h-10 hover:bg-gray-50 text-black w-full mt-3 rounded-3xl "
+          className="bg-white h-10 hover:bg-gray-50 text-black md:w-full w-5/6 mt-3 rounded-3xl "
           onClick={() => signIn("google")}
         >
-          <Image className="w-5 h-5 mr-2" src={googleIcon} alt="google-icon" />{" "}
+          <Image className="w-5 h-5 mr-2" src={googleIcon} alt="google-icon" />
           <span className={`font-medium`}>Signup with Google</span>
         </Button>
       </div>
