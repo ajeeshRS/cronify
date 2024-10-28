@@ -87,7 +87,7 @@ export const deleteOlderEvents = async (cronJobId: string) => {
         },
         skip: 50,
       });
-      const olderEventIds = olderEvents.map((event) => event.id);
+      const olderEventIds = olderEvents.map((event:any) => event.id);
       console.log("older events : ", olderEvents);
 
       const result = await prisma.event.deleteMany({
