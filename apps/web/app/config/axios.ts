@@ -1,5 +1,5 @@
 import axios from "axios";
 
 export const API = axios.create({
-  baseURL: "http://localhost:3001/api/v1/cronjob",
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
 });
