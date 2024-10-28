@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { BellRing, CalendarCheck, Timer, Vote } from "lucide-react";
-import Faq from "@/components/Faq";
+import Faq from "../components/Faq";
 import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 import { container, item } from "@/lib/constants/framer.constants";
