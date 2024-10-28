@@ -1,11 +1,11 @@
 "use client";
 import Link from "next/link";
 import { BellRing, CalendarCheck, Timer, Vote } from "lucide-react";
-import Faq from "../components/Faq";
 import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 import { container, item } from "@/lib/constants/framer.constants";
 import { useInView } from "react-intersection-observer";
+import Faq from "@/components/faqComponent";
 
 export default function Home() {
   const { data: session } = useSession();
