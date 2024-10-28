@@ -50,7 +50,7 @@ export default function CronjobCard({ job, getCronJobs }: Props) {
     if (status === "authenticated" && customSession?.user?.id) {
       const toastId = toast.loading("Enabling..");
       try {
-        const res = await API.put(`/enable`, {
+         await API.put(`/enable`, {
           cronjobId,
           userId: customSession.user.id,
         });
@@ -71,7 +71,7 @@ export default function CronjobCard({ job, getCronJobs }: Props) {
     if (status === "authenticated" && customSession?.user?.id) {
       const toastId = toast.loading("Disabling..");
       try {
-        const res = await API.put(`/disable`, {
+         await API.put(`/disable`, {
           cronjobId,
           userId: customSession.user.id,
         });

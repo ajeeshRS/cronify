@@ -27,6 +27,12 @@ export default function Page() {
 
   const token = searchParams.get("token") as string;
 
+  if (!token) {
+    toast.error("Invalid or missing token.");
+    router.push("/login");
+    return null;
+  }
+
   const form = useForm<ResetPasswordSchemaType>({
     resolver: zodResolver(ResetPasswordSchema),
     defaultValues: {
@@ -50,52 +56,52 @@ export default function Page() {
   };
 
   return (
-    <div className="w-full min-h-[80vh] flex items-center justify-center">
-      <div className="md:w-2/6 w-5/6 py-10 md:px-10 px-5 rounded-3xl flex flex-col items-center justify-center shadow-md">
-        <h3 className="text-3xl font-bold py-4">Reset Password</h3>
-        <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit((data) =>
-              handleResetPassword(data.newPassword)
-            )}
-            className="md:w-full w-5/6 flex flex-col items-end"
-          >
-            <FormField
-              control={form.control}
-              name="newPassword"
-              render={({ field }) => (
-                <FormItem className="my-2 w-full">
-                  <FormLabel>
-                    New Password <span className="text-red-500">*</span>
-                  </FormLabel>
-                  <FormControl>
-                    <Input type="password" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+      <div className="w-full min-h-[80vh] flex items-center justify-center">
+        <div className="md:w-2/6 w-5/6 py-10 md:px-10 px-5 rounded-3xl flex flex-col items-center justify-center shadow-md">
+          <h3 className="text-3xl font-bold py-4">Reset Password</h3>
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit((data) =>
+                handleResetPassword(data.newPassword)
               )}
-            />
-            <FormField
-              control={form.control}
-              name="confirmPassword"
-              render={({ field }) => (
-                <FormItem className="my-2 w-full">
-                  <FormLabel>
-                    Confirm Password <span className="text-red-500">*</span>
-                  </FormLabel>
-                  <FormControl>
-                    <Input type="password" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button type="submit" className="my-4">
-              {loading ? "Resetting.." : "Reset"}
-            </Button>
-          </form>
-        </Form>
+              className="md:w-full w-5/6 flex flex-col items-end"
+            >
+              <FormField
+                control={form.control}
+                name="newPassword"
+                render={({ field }) => (
+                  <FormItem className="my-2 w-full">
+                    <FormLabel>
+                      New Password <span className="text-red-500">*</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Input type="password" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="confirmPassword"
+                render={({ field }) => (
+                  <FormItem className="my-2 w-full">
+                    <FormLabel>
+                      Confirm Password <span className="text-red-500">*</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Input type="password" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button type="submit" className="my-4">
+                {loading ? "Resetting.." : "Reset"}
+              </Button>
+            </form>
+          </Form>
+        </div>
       </div>
-    </div>
   );
 }

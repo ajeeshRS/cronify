@@ -19,10 +19,7 @@ export default function Page() {
   const session = useSession();
   const router = useRouter();
 
-  if (session.status === "loading" || !session.data) {
-    router.push("/login");
-  }
-
+ 
   const getUser = useCallback(async () => {
     try {
       setLoading(true);
@@ -40,6 +37,13 @@ export default function Page() {
     await signOut({ redirect: false });
     router.push("/");
   };
+
+  useEffect(() => {
+    if (session.status === "loading") return;
+    if (!session.data) {
+      router.push("/login");
+    }
+  }, [session, router]);
 
   useEffect(() => {
     if (session.status === "authenticated" && session?.data.user) {

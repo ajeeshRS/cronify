@@ -287,7 +287,7 @@ export const deleteUserAccount = async () => {
       throw new Error("User not found");
     }
 
-    const result = await prisma.$transaction([
+    await prisma.$transaction([
       prisma.event.deleteMany({
         where: {
           cronJob: {

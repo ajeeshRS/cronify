@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     const salt = await brcypt.genSalt(10);
     const hashedPassword = await brcypt.hash(password, salt);
 
-    const res = await prisma.user.create({
+    await prisma.user.create({
       data: {
         email: email,
         username: username,

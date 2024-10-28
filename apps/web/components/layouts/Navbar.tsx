@@ -14,7 +14,6 @@ import { signOut, useSession } from "next-auth/react";
 import MobileNavbar from "../mobileNavbar";
 import { toast } from "sonner";
 import {
-  container,
   navContainer,
   navItem,
   navList,
