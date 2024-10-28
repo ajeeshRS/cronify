@@ -226,7 +226,7 @@ export const enableCronjob = async (req: Request, res: Response) => {
       // save the job in-memory and starts
       scheduledjobs.set(updatedCronjob.id, scheduledJob);
       scheduledJob.start();
-      console.log("Job scheduled again and started!!")
+      console.log("Job scheduled again and started!!");
     }
 
     await deleteOlderEvents(cronjobId);
@@ -458,4 +458,8 @@ export const updateCronjob = async (req: Request, res: Response) => {
     console.error("Error in updating cronjob: ", err);
     res.status(500).json({ message: "Internal server error" });
   }
+};
+
+export const testPoint = async (req: Request, res: Response) => {
+  res.status(200).json("OK!");
 };

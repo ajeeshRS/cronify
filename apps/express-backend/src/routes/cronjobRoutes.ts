@@ -5,6 +5,7 @@ import {
   deleteCronjob,
   disableCronjob,
   enableCronjob,
+  testPoint,
   updateCronjob,
 } from "../controllers/cronjobController";
 
@@ -21,5 +22,7 @@ router.put("/disable", disableCronjob);
 router.delete("/delete", deleteCronjob);
 
 router.put("/edit", updateCronjob);
+
+router.get("/test",testPoint)
 
 export default router;
