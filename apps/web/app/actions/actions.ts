@@ -441,6 +441,7 @@ export const sendResetPasswordMail = async (email: string) => {
         pass: process.env.APP_SECRET,
       },
       secure: false,
+      port: 587,
     });
 
     const mailOptions = {
