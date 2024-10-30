@@ -130,7 +130,7 @@ export default function Page() {
         </Form>
         <Button
           className="bg-white hover:bg-gray-50 text-black md:w-full w-5/6 mt-3 h-10 rounded-3xl"
-          onClick={() => signIn("google")}
+          onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
         >
           <Image className="w-5 h-5 mr-2" src={googleIcon} alt="google-icon" />
           <span>Login with google</span>
