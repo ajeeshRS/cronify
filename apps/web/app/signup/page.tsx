@@ -18,16 +18,16 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import axios, { AxiosError } from "axios";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Msg } from "@/types/common";
 import Image from "next/image";
 import googleIcon from "../../public/google.svg";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 export default function Page() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-
+  const session = useSession();
   const form = useForm<SignupSchemaType>({
     resolver: zodResolver(SignupSchema),
     defaultValues: {
@@ -59,20 +59,11 @@ export default function Page() {
     }
   }
 
-  const handleGoogleLogin = async () => {
-    try {
-      const response = await signIn("google", { redirect: false });
-      
-      if (response?.ok) {
-        router.push("/dashboard");
-      } else {
-        toast.error("Failed to sign in");
-      }
-    } catch (error) {
-      toast.error("Failed to sign up");
+  useEffect(() => {
+    if (session.status !== "loading" && session?.data?.user) {
+      router.push("/dashboard");
     }
-  };
-
+  }, [session]);
   return (
     <div className="w-full h-[90vh] flex items-start justify-center pt-10">
       <div className="md:w-2/6 w-5/6 py-10 md:px-10 px-5 rounded-3xl flex flex-col items-center justify-center shadow-md">
@@ -140,7 +131,7 @@ export default function Page() {
         </Form>
         <Button
           className="bg-white h-10 hover:bg-gray-50 text-black md:w-full w-5/6 mt-3 rounded-3xl "
-          onClick={handleGoogleLogin}
+          onClick={() => signIn("google", { redirect: false })}
         >
           <Image className="w-5 h-5 mr-2" src={googleIcon} alt="google-icon" />
           <span className={`font-medium`}>Signup with Google</span>
