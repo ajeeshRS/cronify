@@ -60,9 +60,13 @@ export default function Page() {
   }
 
   const handleGoogleLogin = async () => {
-    signIn("google").then(() => {
-      router.push("/dashboard");
-    });
+    signIn("google", { redirect: false })
+      .then(() => {
+        router.push("/dashboard");
+      })
+      .catch(() => {
+        toast.error("Failed up signup");
+      });
   };
 
   return (
