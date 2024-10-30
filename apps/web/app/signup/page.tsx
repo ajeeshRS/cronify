@@ -60,13 +60,17 @@ export default function Page() {
   }
 
   const handleGoogleLogin = async () => {
-    signIn("google", { redirect: false })
-      .then(() => {
+    try {
+      const response = await signIn("google", { redirect: false });
+      
+      if (response?.ok) {
         router.push("/dashboard");
-      })
-      .catch(() => {
-        toast.error("Failed up signup");
-      });
+      } else {
+        toast.error("Failed to sign in");
+      }
+    } catch (error) {
+      toast.error("Failed to sign up");
+    }
   };
 
   return (
