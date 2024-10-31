@@ -119,7 +119,7 @@ export default function Page() {
               render={({ field }) => (
                 <FormItem className="my-2">
                   <FormLabel>
-                    URL <span className="text-red-500">*</span>
+                    URL(GET) <span className="text-red-500">*</span>
                   </FormLabel>
                   <FormControl>
                     <Input {...field} />

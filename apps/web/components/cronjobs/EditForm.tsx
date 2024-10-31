@@ -135,7 +135,7 @@ export default function EditForm({ id, initialValue, form }: Props) {
           name="url"
           render={({ field }) => (
             <FormItem className="my-2">
-              <FormLabel>URL</FormLabel>
+              <FormLabel>URL(GET)</FormLabel>
               <FormControl>
                 <Input {...field} />
               </FormControl>
